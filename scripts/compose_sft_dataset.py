@@ -22,9 +22,7 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         if score < config.get("min_score", 8):
             continue
 
-        mapping = {
-            "bot": "assistant"
-        }
+        mapping = {"bot": "assistant"}
         for message in row["messages"]:
             message["role"] = mapping.get(message["role"], message["role"])
 

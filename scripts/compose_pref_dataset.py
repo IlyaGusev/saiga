@@ -17,9 +17,7 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         max_length_ratio = config.get("max_length_ratio", 2.1)
         if len(str(row["chosen"])) > len(str(row["rejected"])) * max_length_ratio:
             continue
-        mapping = {
-            "bot": "assistant"
-        }
+        mapping = {"bot": "assistant"}
         for message in row["prompt"]:
             message["role"] = mapping.get(message["role"], message["role"])
         for message in row["chosen"]:

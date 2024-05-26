@@ -15,7 +15,7 @@ def train(
     train_path: str,
     val_path: str,
     output_dir: str,
-    sample_rate: float
+    sample_rate: float = 1.0,
 ):
     with open(config_path) as r:
         config = json.load(r)
@@ -39,33 +39,26 @@ def train(
     lora_config = config.get("lora")
     if lora_config:
         model = FastLanguageModel.get_peft_model(
-            model,
-            **config["lora"],
-            max_seq_length=max_seq_length
+            model, **config["lora"], max_seq_length=max_seq_length
         )
 
     train_records = read_jsonl(train_path)
     val_records = read_jsonl(val_path)
 
-    train_dataset = ChatDataset(
-        train_records,
-        tokenizer,
-        max_tokens_count=max_tokens_count,
-        sample_rate=sample_rate,
-        only_target_loss=config["only_target_loss"],
-        add_global_bos=config.get("add_global_bos", True),
-        add_global_eos=config.get("add_global_eos", True),
-    )
-
-    val_dataset = ChatDataset(
-        val_records,
-        tokenizer,
-        max_tokens_count=max_tokens_count,
-        sample_rate=sample_rate,
-        only_target_loss=config["only_target_loss"],
-        add_global_bos=config.get("add_global_bos", True),
-        add_global_eos=config.get("add_global_eos", True),
-    )
+    datasets = []
+    for records in (train_records, val_records):
+        datasets.append(
+            ChatDataset(
+                records,
+                tokenizer,
+                max_tokens_count=max_tokens_count,
+                sample_rate=sample_rate,
+                only_target_loss=config["only_target_loss"],
+                add_global_bos=config.get("add_global_bos", True),
+                add_global_eos=config.get("add_global_eos", True),
+            )
+        )
+    train_dataset, val_dataset = datasets
     data_collator = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
 
     trainer_config = config["trainer"]
@@ -76,10 +69,7 @@ def train(
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         data_collator=data_collator,
-        args=TrainingArguments(
-            **trainer_config,
-            output_dir=output_dir
-        ),
+        args=TrainingArguments(**trainer_config, output_dir=output_dir),
     )
     trainer.train()
     model.save_pretrained(output_dir)
