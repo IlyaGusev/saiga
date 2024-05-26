@@ -23,50 +23,12 @@ from transformers import (
 )
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 from peft import get_peft_model, LoraConfig, prepare_model_for_kbit_training
+from unsloth.models._utils import prepare_model_for_kbit_training
 
 from src.dataset import ChatDataset
 from src.util.dl import set_random_seed
 from src.util.io import read_jsonl
 
-
-def custom_prepare_model_for_int8_training(
-    model, output_embedding_layer_name="lm_head", layer_norm_names=["layer_norm"]
-):
-    for name, param in model.named_parameters():
-        param.requires_grad = False
-
-    for name, param in model.named_parameters():
-        if param.ndim == 1 and any(
-            layer_norm_name in name for layer_norm_name in layer_norm_names
-        ):
-            param.data = param.data.to(torch.float32)
-
-    if hasattr(model, "enable_input_require_grads"):
-        model.enable_input_require_grads()
-    else:
-
-        def make_inputs_require_grad(module, input, output):
-            output.requires_grad_(True)
-
-        model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
-
-    if hasattr(model, output_embedding_layer_name):
-        output_embedding_layer = getattr(model, output_embedding_layer_name)
-        input_dtype = output_embedding_layer.weight.dtype
-
-        class CastOutputToFloat(torch.nn.Sequential):
-            def forward(self, x):
-                return super().forward(x.to(input_dtype)).to(torch.float32)
-
-        setattr(
-            model,
-            output_embedding_layer_name,
-            CastOutputToFloat(output_embedding_layer),
-        )
-
-    model.gradient_checkpointing_enable()
-
-    return model
 
 
 def train(
@@ -100,7 +62,6 @@ def train(
     random.shuffle(train_records)
     print(train_records[0])
 
-    templates_path = config["templates_path"]
     only_target_loss = config.get("only_target_loss", True)
     max_tokens_count = config["max_tokens_count"]
 
@@ -112,7 +73,6 @@ def train(
                 tokenizer,
                 max_tokens_count=max_tokens_count,
                 sample_rate=sample_rate,
-                templates_path=templates_path,
                 only_target_loss=only_target_loss,
             )
         )
@@ -136,7 +96,7 @@ def train(
         torch_dtype=torch.bfloat16,
         attn_implementation="flash_attention_2",
     )
-    model = custom_prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)
 
     if lora_config:
         lora_config = LoraConfig(**lora_config)
