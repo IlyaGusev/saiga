@@ -7,8 +7,8 @@
         "eval_steps": 64,
         "save_steps": 64,
         "logging_steps": 1,
-        "learning_rate": 0.0003,
-        "num_train_epochs": 1,
+        "learning_rate": 0.00003,
+        "num_train_epochs": 2,
         "lr_scheduler_type": "cosine",
         "warmup_steps": 64,
         "bf16": true,
@@ -16,24 +16,25 @@
         "optim": "adamw_8bit",
         "load_best_model_at_end": true,
         "save_total_limit": 1,
-        "seed": 1337,
-        "gradient_checkpointing": true,
-        "label_names": ["labels"]
+        "seed": 1337
     },
     "lora": {
-        "r": 64,
+        "r": 128,
         "lora_alpha": 16,
         "lora_dropout": 0.0,
         "bias": "none",
-        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        "modules_to_save": ["lm_head"],
+        "use_gradient_checkpointing": "unsloth",
+        "use_rslora": true
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
     "only_target_loss": true,
-    "model_name": "models/aya-23-8b",
-    "max_tokens_count": 4608,
+    "model_name": "models/llama-3-8b",
+    "max_tokens_count": 8192,
     "max_seq_length": 8192,
-    "bos_token": "<BOS_TOKEN>",
-    "eos_token": "<|END_OF_TURN_TOKEN|>",
-    "pad_token": "<PAD>"
+    "bos_token": "<|begin_of_text|>",
+    "eos_token": "<|eot_id|>",
+    "pad_token": "<|begin_of_text|>"
 }

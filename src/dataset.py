@@ -61,7 +61,7 @@ class ChatDataset(Dataset):
         for message in record["messages"]:
             message_input_ids = self.get_tokens([message])
             message_labels = message_input_ids
-            if len(input_ids) + len(message_input_ids) > self.max_tokens_count:
+            if len(input_ids) + len(message_input_ids) > self.max_tokens_count - 2:
                 break
 
             labels_mask = [

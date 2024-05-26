@@ -22,13 +22,12 @@ from transformers import (
     BitsAndBytesConfig,
 )
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
-from peft import get_peft_model, LoraConfig, prepare_model_for_kbit_training
+from peft import get_peft_model, LoraConfig
 from unsloth.models._utils import prepare_model_for_kbit_training
 
 from src.dataset import ChatDataset
 from src.util.dl import set_random_seed
 from src.util.io import read_jsonl
-
 
 
 def train(
