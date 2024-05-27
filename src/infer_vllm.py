@@ -17,7 +17,7 @@ def infer_saiga_vllm(
     top_p: float = 0.9,
     top_k: int = 30,
     max_tokens: int = 2048,
-    max_context_len: int = 8192,
+    max_seq_len: int = 8192,
     repetition_penalty: float = 1.1,
     enable_system_prompt: bool = False,
     remove_bos_token: bool = False,
@@ -29,7 +29,7 @@ def infer_saiga_vllm(
         max_tokens=max_tokens,
         repetition_penalty=repetition_penalty,
     )
-    llm = LLM(model=model_name, max_context_len_to_capture=max_context_len)
+    llm = LLM(model=model_name, max_seq_len_to_capture=max_seq_len)
     tokenizer = llm.get_tokenizer()
     records = read_jsonl(input_path)
     role_mapping = {
