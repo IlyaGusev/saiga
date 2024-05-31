@@ -17,7 +17,9 @@
         "load_best_model_at_end": true,
         "save_total_limit": 2,
         "seed": 1337,
-        "remove_unused_columns": false
+        "remove_unused_columns": false,
+        "max_grad_norm": 0.5,
+        "weight_decay": 0.04
     },
     "lora": {
         "r": 64,
@@ -37,7 +39,7 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_llama3_8b",
+    "model_name": "models/saiga_llama3_8b_sft_m10_d1_hf",
     "max_seq_length": 8192,
     "max_tokens_count": 6160,
     "bos_token": "<|begin_of_text|>",
