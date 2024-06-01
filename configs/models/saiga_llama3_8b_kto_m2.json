@@ -39,7 +39,7 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_llama3_8b_sft_m10_d1_hf",
+    "model_name": "models/saiga_llama3_8b_sft_m10_d1",
     "max_seq_length": 8192,
     "max_tokens_count": 6160,
     "bos_token": "<|begin_of_text|>",

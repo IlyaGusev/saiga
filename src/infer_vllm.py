@@ -9,7 +9,7 @@ from src.util.io import read_jsonl
 SYSTEM_PROMPT = "Ты — Сайга, русскоязычный автоматический ассистент. Ты разговариваешь с людьми и помогаешь им."
 
 
-def infer_saiga_vllm(
+def infer_vllm(
     model_name: str,
     input_path: str,
     output_path: str,
@@ -77,4 +77,4 @@ def infer_saiga_vllm(
 
 
 if __name__ == "__main__":
-    fire.Fire(infer_saiga_vllm)
+    fire.Fire(infer_vllm)
