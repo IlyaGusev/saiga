@@ -1,3 +1,4 @@
+from typing import Optional
 import json
 
 import fire
@@ -21,6 +22,7 @@ def infer_vllm(
     repetition_penalty: float = 1.1,
     enable_system_prompt: bool = False,
     remove_bos_token: bool = False,
+    quantization: Optional[str] = None
 ):
     sampling_params = SamplingParams(
         temperature=temperature,
@@ -29,7 +31,12 @@ def infer_vllm(
         max_tokens=max_tokens,
         repetition_penalty=repetition_penalty,
     )
-    llm = LLM(model=model_name, max_seq_len_to_capture=max_seq_len)
+    llm = LLM(
+        model=model_name,
+        max_seq_len_to_capture=max_seq_len,
+        quantization=quantization,
+        gpu_memory_utilization=0.8
+    )
     tokenizer = llm.get_tokenizer()
     records = read_jsonl(input_path)
     role_mapping = {

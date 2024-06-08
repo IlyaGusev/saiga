@@ -56,9 +56,9 @@ class ChatKTODataset(Dataset):
             rejected = record["rejected"][0]["content"]
             rejected_tokens = self.tokenizer(rejected)["input_ids"]
 
-            if len(prompt_tokens) + len(chosen_tokens) > self.max_tokens_count:
+            if len(prompt_tokens) + len(chosen_tokens) > self.max_tokens_count - 10:
                 continue
-            if len(prompt_tokens) + len(rejected_tokens) > self.max_tokens_count:
+            if len(prompt_tokens) + len(rejected_tokens) > self.max_tokens_count - 10:
                 continue
 
             self.records.append({"prompt": prompt, "completion": chosen, "label": True})
