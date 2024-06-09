@@ -35,7 +35,6 @@ def infer_vllm(
         model=model_name,
         max_seq_len_to_capture=max_seq_len,
         quantization=quantization,
-        gpu_memory_utilization=0.8
     )
     tokenizer = llm.get_tokenizer()
     records = read_jsonl(input_path)
@@ -77,6 +76,7 @@ def infer_vllm(
             generated_text = output.outputs[0].text
             print(prompt)
             print(generated_text)
+            print(prompt_token_ids)
             print()
             print()
             record["answer"] = generated_text.encode("utf-8").decode("utf-8", "ignore")

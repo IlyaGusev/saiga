@@ -17,6 +17,11 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         max_length_ratio = config.get("max_length_ratio", 2.1)
         if len(str(row["chosen"])) > len(str(row["rejected"])) * max_length_ratio:
             continue
+
+        sonnet_approved_only = config.get("sonnet_approved_only", False)
+        if sonnet_approved_only and not row["sonnet_approved"]:
+            continue
+
         mapping = {"bot": "assistant"}
         for message in row["prompt"]:
             message["role"] = mapping.get(message["role"], message["role"])
