@@ -22,6 +22,12 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         if sonnet_approved_only and not row["sonnet_approved"]:
             continue
 
+        if not row["chosen"][0]["content"].strip():
+            continue
+
+        if not row["rejected"][0]["content"].strip():
+            continue
+
         mapping = {"bot": "assistant"}
         for message in row["prompt"]:
             message["role"] = mapping.get(message["role"], message["role"])
