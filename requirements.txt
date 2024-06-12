@@ -7,8 +7,8 @@ wandb >= 0.17.0
 fire >= 0.6.0
 flake8 >= 7.0.0
 mmh3 == 4.1.0
-xformers == 0.0.26
-flash-attn == 2.5.9
+xformers == 0.0.26.post1
+flash-attn == 2.5.9.post1
 vllm == 0.4.3
 git+https://github.com/unslothai/unsloth@b0781339f035c72b3028d846eb2261e8115cd375
 git+https://github.com/huggingface/trl@bc8dfbf4e2169010b3094913a1fa4f888f750111
