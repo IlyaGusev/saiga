@@ -134,7 +134,8 @@ def abliterate(
     n_inst_test: int = 4,
     top_n: int = 4,
     pos: int = -1,
-    act_collection_batch_size: int = 32
+    act_collection_batch_size: int = 32,
+    n_devices: int = 1
 ):
     # Loading dataset
     harmful_inst_train, harmful_inst_test = get_harmful_instructions()
@@ -150,7 +151,9 @@ def abliterate(
         model_path,
         local_files_only=True,
         dtype=torch.bfloat16,
-        default_padding_side="left"
+        default_padding_side="left",
+        device="cuda",
+        n_devices=n_devices,
     )
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     tokenizer.padding_side = "left"
@@ -163,8 +166,10 @@ def abliterate(
         tokenizer,
         instructions=harmless_inst_train[:n_inst_train],
     )
+    print("Model and data loaded!")
 
     # Collecting activations
+    print("Collecting activations...")
     bs = act_collection_batch_size
     harmful = defaultdict(list)
     harmless = defaultdict(list)
@@ -192,6 +197,7 @@ def abliterate(
     harmless = {k: torch.cat(v) for k, v in harmless.items()}
     activation_layers = ["resid_pre", "resid_mid", "resid_post"]
     activation_refusals = defaultdict(list)
+    print("Activations are collected!")
 
     # Calculating directions
     n_layers = model.cfg.n_layers
@@ -217,10 +223,12 @@ def abliterate(
     )
     activation_scored = activation_scored[:top_n]
 
+    print("Generating baseline answers...")
     # Calculating baseline answers
     baseline_generations = get_generations(
         model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=[]
     )
+    print("Baseline answers are generated!")
 
     # Calculating answers after applying interventions
     evals = []
@@ -278,10 +286,10 @@ def abliterate(
         lm_model.layers[l].self_attn.o_proj.weight = torch.nn.Parameter(
             einops.rearrange(
                 state_dict[f"blocks.{l}.attn.W_O"], "n h m->m (n h)", n=model.cfg.n_heads
-            ).contiguous()
+            ).contiguous().cpu()
         )
         lm_model.layers[l].mlp.down_proj.weight = torch.nn.Parameter(
-            torch.transpose(state_dict[f"blocks.{l}.mlp.W_out"], 0, 1).contiguous()
+            torch.transpose(state_dict[f"blocks.{l}.mlp.W_out"], 0, 1).contiguous().cpu()
         )
 
     hf_model.save_pretrained(output_path)
