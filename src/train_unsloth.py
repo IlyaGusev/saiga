@@ -3,11 +3,28 @@ import json
 import fire
 import wandb
 import torch
-from transformers import TrainingArguments, Trainer, DataCollatorForTokenClassification
-from unsloth import FastLanguageModel
+from transformers import DataCollatorForTokenClassification, Trainer
+from unsloth import FastLanguageModel, UnslothTrainingArguments
+from unsloth.trainer import _create_unsloth_optimizer
 
 from src.dataset import ChatDataset
 from src.util.io import read_jsonl
+
+
+class CustomTrainer(Trainer):
+    def create_optimizer(self):
+        embedding_learning_rate = getattr(self.args, "embedding_learning_rate", None)
+        if embedding_learning_rate is None:
+            return super().create_optimizer()
+        if self.optimizer is None:
+            optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(self.args)
+            self.optimizer = _create_unsloth_optimizer(
+                self.model,
+                optimizer_cls,
+                optimizer_kwargs,
+                embedding_learning_rate,
+            )
+        return self.optimizer
 
 
 def train(
@@ -64,12 +81,12 @@ def train(
     trainer_config = config["trainer"]
     if trainer_config.get("report_to", "wandb") == "wandb":
         wandb.init(project="rulm_self_instruct", name=config_path)
-    trainer = Trainer(
+    trainer = CustomTrainer(
         model=model,
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         data_collator=data_collator,
-        args=TrainingArguments(**trainer_config, output_dir=output_dir),
+        args=UnslothTrainingArguments(**trainer_config, output_dir=output_dir),
     )
     trainer.train()
     model.save_pretrained(output_dir)

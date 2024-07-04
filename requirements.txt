@@ -1,7 +1,7 @@
 torch >= 2.3.0
-transformers == 4.41.1
+transformers == 4.42.3
 peft == 0.11.1
-accelerate == 0.30.1
+accelerate == 0.31.0
 bitsandbytes == 0.43.1
 wandb >= 0.17.0
 fire >= 0.6.0
@@ -9,6 +9,6 @@ flake8 >= 7.0.0
 mmh3 == 4.1.0
 xformers == 0.0.26.post1
 flash-attn == 2.5.9.post1
-vllm == 0.4.3
-git+https://github.com/unslothai/unsloth@b0781339f035c72b3028d846eb2261e8115cd375
-git+https://github.com/huggingface/trl@bc8dfbf4e2169010b3094913a1fa4f888f750111
+vllm == 0.5.0.post1
+trl == 0.9.4
+git+https://github.com/unslothai/unsloth@933d9fe2cb2459f949ee2250e90a5b610d277eab
