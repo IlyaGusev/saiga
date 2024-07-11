@@ -1,3 +1,4 @@
+import os
 import json
 
 import fire
@@ -9,6 +10,8 @@ from unsloth.trainer import _create_unsloth_optimizer
 
 from src.dataset import ChatDataset
 from src.util.io import read_jsonl
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class CustomTrainer(Trainer):
