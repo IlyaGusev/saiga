@@ -158,29 +158,35 @@ def get_orthogonalized_matrix(
     return matrix - proj
 
 
+def norm(vector):
+    return vector / vector.norm()
+
+
 def abliterate(
     model_path: str,
     output_path: str,
     n_inst_train: int = 256,
     n_inst_test: int = 4,
-    top_n: int = 10,
+    top_n: int = 20,
     pos: int = -1,
-    act_collection_batch_size: int = 32,
-    n_devices: int = 1
+    act_collection_batch_size: int = 1,
+    n_devices: int = 1,
+    use_local: bool = False
 ):
     # Loading dataset
     harmful_inst_train, harmful_inst_test = get_harmful_instructions()
     harmless_inst_train, harmless_inst_test = get_harmless_instructions()
 
     # Hack to fix transformer_lens model loading
-    assert "llama" not in model_path
-    transformer_lens.loading_from_pretrained.MODEL_ALIASES[model_path] = model_path
-    transformer_lens.loading_from_pretrained.OFFICIAL_MODEL_NAMES.append(model_path)
+    if use_local:
+        assert "llama" not in model_path
+        transformer_lens.loading_from_pretrained.MODEL_ALIASES[model_path] = model_path
+        transformer_lens.loading_from_pretrained.OFFICIAL_MODEL_NAMES.append(model_path)
 
     # Loading model
     model = HookedTransformer.from_pretrained_no_processing(
         model_path,
-        local_files_only=True,
+        local_files_only=use_local,
         dtype=torch.bfloat16,
         default_padding_side="left",
         device="cuda",
@@ -199,6 +205,9 @@ def abliterate(
     )
     print("Model and data loaded!")
 
+    activation_layers = ["resid_pre", "resid_mid", "resid_post"]
+    selected_layers = ["resid_mid"]
+
     # Collecting activations
     print("Collecting activations...")
     bs = act_collection_batch_size
@@ -207,13 +216,13 @@ def abliterate(
     for harmful_batch, harmless_batch in zip(gen_batch(harmful_tokens, bs), gen_batch(harmless_tokens, bs)):
         harmful_logits, harmful_cache = model.run_with_cache(
             harmful_batch,
-            names_filter=lambda hook_name: 'resid' in hook_name,
+            names_filter=lambda hook_name: any(l in hook_name for l in activation_layers),
             device='cpu',
             reset_hooks_end=True
         )
         harmless_logits, harmless_cache = model.run_with_cache(
             harmless_batch,
-            names_filter=lambda hook_name: 'resid' in hook_name,
+            names_filter=lambda hook_name: any(l in hook_name for l in activation_layers),
             device='cpu',
             reset_hooks_end=True
         )
@@ -226,7 +235,6 @@ def abliterate(
 
     harmful = {k: torch.cat(v) for k, v in harmful.items()}
     harmless = {k: torch.cat(v) for k, v in harmless.items()}
-    activation_layers = ["resid_pre", "resid_mid", "resid_post"]
     activation_refusals = defaultdict(list)
     print("Activations are collected!")
 
@@ -237,12 +245,10 @@ def abliterate(
             harmful_mean_act = get_act_idx(harmful, layer, layer_num)[:, pos, :].mean(dim=0)
             harmless_mean_act = get_act_idx(harmless, layer, layer_num)[:, pos, :].mean(dim=0)
             refusal_dir = harmful_mean_act - harmless_mean_act
-            refusal_dir = refusal_dir / refusal_dir.norm()
             activation_refusals[layer].append(refusal_dir)
-            print(layer, layer_num, abs(refusal_dir.mean().item()) * 10000)
+            print(layer, layer_num, abs(norm(refusal_dir).mean().item()) * 10000)
 
     # Sorting interventions by mean
-    selected_layers = ["resid_pre"]
     activation_scored = sorted(
         [
             (layer, layer_num, activation_refusals[layer][layer_num - 1])
@@ -264,7 +270,7 @@ def abliterate(
     # Calculating answers after applying interventions
     evals = []
     for _, _, refusal_dir in tqdm(activation_scored):
-        hook_fn = functools.partial(direction_ablation_hook, direction=refusal_dir)
+        hook_fn = functools.partial(direction_ablation_hook, direction=norm(refusal_dir))
         fwd_hooks = [
             (utils.get_act_name(act_name, layer_num), hook_fn)
             for layer_num in list(range(n_layers))
@@ -275,7 +281,7 @@ def abliterate(
         ))
 
     # Selecting best intervention manually
-    blacklist = ["I cannot", "I can't", "не могу"]
+    blacklist = ["I cannot", "I can't", "не могу", "against my programming", "against our principles"]
     for i in range(n_inst_test):
         print(f"INSTRUCTION {i}: {harmful_inst_test[i]}\n")
         print(f"BASELINE COMPLETION:\n{baseline_generations[i]}")
@@ -290,12 +296,11 @@ def abliterate(
     # Applying intervention to weights
     if refusal_dir.device != model.W_E.device:
         refusal_dir = refusal_dir.to(model.W_E.device)
-    model.W_E.data = get_orthogonalized_matrix(model.W_E, refusal_dir)
+    model.W_E.data = get_orthogonalized_matrix(model.W_E, norm(refusal_dir))
+
     for block in tqdm(model.blocks):
-        if refusal_dir.device != block.attn.W_O.device:
-            refusal_dir = refusal_dir.to(block.attn.W_O.device)
-        block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
-        block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
+        block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, norm(refusal_dir))
+        block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, norm(refusal_dir))
 
     # Generating with new weights
     orthogonalized_generations = get_generations(
@@ -312,7 +317,12 @@ def abliterate(
     hf_model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16)
     lm_model = hf_model.model
     state_dict = model.state_dict()
-    lm_model.embed_tokens.weight = torch.nn.Parameter(state_dict["embed.W_E"].cpu())
+    embeds = state_dict["embed.W_E"].cpu()
+    if "gemma" in model_path:
+        embeds = embeds / torch.tensor(model.cfg.d_model**0.5, dtype=model.cfg.dtype)
+    lm_model.embed_tokens.weight = torch.nn.Parameter(embeds)
+    if "gemma" in model_path:
+        lm_model.tie_weights()
     for l in range(model.cfg.n_layers):
         lm_model.layers[l].self_attn.o_proj.weight = torch.nn.Parameter(
             einops.rearrange(
