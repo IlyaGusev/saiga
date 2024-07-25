@@ -1,6 +1,7 @@
 import json
 import random
 import fire
+import os
 from typing import List, Dict
 
 import wandb
@@ -21,6 +22,10 @@ from datasets import Dataset as HFDataset
 from unsloth import PatchDPOTrainer, FastLanguageModel
 
 from src.util.io import read_jsonl
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+torch._dynamo.config.cache_size_limit = 128
+
 
 
 class ChatKTODataset(Dataset):

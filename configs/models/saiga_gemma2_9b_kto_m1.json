@@ -39,7 +39,7 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_9b_abliterated_sft_m2_d9_abliterated",
+    "model_name": "models/saiga_gemma2_9b_abliterated_sft_m3_d9_abliterated",
     "max_seq_length": 8192,
     "max_tokens_count": 5120,
     "bos_token": "<bos>",

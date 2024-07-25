@@ -12,7 +12,7 @@ from src.dataset import ChatDataset
 from src.util.io import read_jsonl
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+torch._dynamo.config.cache_size_limit = 128
 
 class CustomTrainer(Trainer):
     def create_optimizer(self):
@@ -50,6 +50,7 @@ def train(
         load_in_4bit=config["load_in_4bit"],
         attn_implementation="flash_attention_2",
     )
+    tie_word_embeddings = model.config.tie_word_embeddings
     tokenizer.bos_token = config["bos_token"]
     tokenizer.eos_token = config["eos_token"]
     tokenizer.pad_token = config["pad_token"]
@@ -61,6 +62,10 @@ def train(
         model = FastLanguageModel.get_peft_model(
             model, **config["lora"], max_seq_length=max_seq_length
         )
+        modules_to_save = config["lora"].get("modules_to_save", [])
+        if tie_word_embeddings and "embed_tokens" in modules_to_save and "lm_head" in modules_to_save:
+            print("Tying lm_head and embed_tokens...")
+            model.base_model.model.model.embed_tokens.modules_to_save["default"].weight = model.base_model.model.lm_head.modules_to_save["default"].weight
 
     train_records = read_jsonl(train_path)
     val_records = read_jsonl(val_path)
