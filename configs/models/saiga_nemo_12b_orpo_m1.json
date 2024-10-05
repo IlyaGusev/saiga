@@ -1,0 +1,44 @@
+{
+    "trainer": {
+        "evaluation_strategy": "steps",
+        "per_device_train_batch_size": 1,
+        "per_device_eval_batch_size": 1,
+        "gradient_accumulation_steps": 32,
+        "eval_steps": 8,
+        "save_steps": 8,
+        "logging_steps": 1,
+        "learning_rate": 0.00005,
+        "num_train_epochs": 4,
+        "lr_scheduler_type": "cosine",
+        "warmup_steps": 8,
+        "bf16": true,
+        "fp16": false,
+        "optim": "paged_adamw_8bit",
+        "load_best_model_at_end": true,
+        "save_total_limit": 2,
+        "seed": 1337,
+        "remove_unused_columns": false
+    },
+    "lora": {
+        "r": 64,
+        "lora_alpha": 16,
+        "lora_dropout": 0.0,
+        "bias": "none",
+        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        "use_gradient_checkpointing": "unsloth"
+    },
+    "orpo": {
+        "beta": 0.1,
+        "max_prompt_length": 16384,
+        "max_completion_length":16384,
+        "max_length": 16384
+    },
+    "load_in_8bit": false,
+    "load_in_4bit": true,
+    "model_name": "models/saiga_nemo_12b_sft_m1_d10",
+    "max_seq_length": 16384,
+    "max_tokens_count": 16384,
+    "bos_token": "<s>",
+    "eos_token": "</s>",
+    "pad_token": "<s>"
+}

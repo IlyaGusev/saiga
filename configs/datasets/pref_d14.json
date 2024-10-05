@@ -1,0 +1,10 @@
+{
+    "dataset_name": "40umov/dostoevsky",
+    "dataset_revision": "14ceec1ea94fdd89f91ba823ab38fbad50f1d4b4",
+    "max_length_ratio": 5.0,
+    "field_mapping": {
+        "original fragment": "chosen",
+        "prompta with a summary of the previous fragmen": "prompt",
+        "synthetic fragment": "rejected"
+    }
+}

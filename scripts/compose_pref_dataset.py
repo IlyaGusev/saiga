@@ -6,14 +6,33 @@ import fire
 from datasets import load_dataset
 
 
-def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
+def fix_text(text):
+     text = text.replace("\xa0", " ").strip()
+     text = text.replace("\\xa0", " ").strip()
+     return text
+
+
+def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
     with open(config_path) as r:
         config = json.load(r)
 
     records = []
-    dataset_name = config.get("dataset_name", "IlyaGusev/lmsys_clean_ru_preferences")
+    dataset_name = config.get("dataset_name", "IlyaGusev/saiga_preferences")
     revision = config["dataset_revision"]
+    field_mapping = config.get("field_mapping", dict())
     for row in load_dataset(dataset_name, split="train", revision=revision):
+        if field_mapping:
+            for k, v in list(row.items()):
+                if k in field_mapping:
+                    row[field_mapping[k]] = row.pop(k)
+
+        if isinstance(row["chosen"], str):
+            row["chosen"] = [{"role": "assistant", "content": row["chosen"]}]
+        if isinstance(row["rejected"],  str):
+            row["rejected"] = [{"role": "assistant", "content": row["rejected"]}]
+        if isinstance(row["prompt"], str):
+            row["prompt"] = [{"role": "user", "content": row["prompt"]}]
+
         max_length_ratio = config.get("max_length_ratio", 2.1)
         max_length_ratio_prob = config.get("max_length_ratio_prob", 0.0)
         if len(str(row["chosen"])) > len(str(row["rejected"])) * max_length_ratio:
@@ -29,6 +48,9 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
 
         if not row["rejected"][0]["content"].strip():
             continue
+
+        row["chosen"][0]["content"] = fix_text(row["chosen"][0]["content"].strip())
+        row["rejected"][0]["content"] = fix_text(row["rejected"][0]["content"].strip())
 
         mapping = {"bot": "assistant"}
         for message in row["prompt"]:
@@ -60,4 +82,4 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
 
 
 if __name__ == "__main__":
-    fire.Fire(compose_sft_dataset)
+    fire.Fire(compose_pref_dataset)
