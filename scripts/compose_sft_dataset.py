@@ -13,6 +13,8 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
     records = []
     dataset_name = config.get("dataset_name", "IlyaGusev/saiga_scored")
     revision = config["dataset_revision"]
+    system_prompt_dropout = config.get("system_prompt_dropout", 0.0)
+
     for row in load_dataset(dataset_name, split="train", revision=revision):
         is_bad_by_regex = row["is_bad_by_regex"]
         if config.get("exclude_regex", False) and is_bad_by_regex:
@@ -21,6 +23,13 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         score = row["opus_score"]
         if score < config.get("min_score", 8):
             continue
+
+        if system_prompt_dropout != 0.0 and row["messages"][0]["role"] == "system":
+            system_message = row["messages"][0]["content"].lower()
+            substrings = ("сайга", "gpt-4o", "claude")
+            if any(ss in system_message for ss in substrings):
+                if random.random() < system_prompt_dropout:
+                    row["messages"] = row["messages"][1:]
 
         mapping = {"bot": "assistant"}
         for message in row["messages"]:
