@@ -34,6 +34,7 @@ def infer_vllm(
     llm = LLM(
         model=model_name,
         max_seq_len_to_capture=max_seq_len,
+        max_model_len=max_seq_len,
         quantization=quantization,
     )
     tokenizer = llm.get_tokenizer()
