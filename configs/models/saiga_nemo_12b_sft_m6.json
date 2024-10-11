@@ -37,5 +37,6 @@
     "max_seq_length": 16384,
     "bos_token": "<s>",
     "eos_token": "</s>",
-    "pad_token": "<s>"
+    "pad_token": "<s>",
+    "pad_token": "<pad>"
 }
