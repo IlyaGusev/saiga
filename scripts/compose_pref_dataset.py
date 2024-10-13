@@ -26,6 +26,10 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
                 if k in field_mapping:
                     row[field_mapping[k]] = row.pop(k)
 
+        is_bad_by_regex = row["is_bad_by_regex"]
+        if config.get("exclude_regex", False) and is_bad_by_regex:
+            continue
+
         if isinstance(row["chosen"], str):
             row["chosen"] = [{"role": "assistant", "content": row["chosen"]}]
         if isinstance(row["rejected"],  str):

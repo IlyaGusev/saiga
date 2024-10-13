@@ -7,7 +7,7 @@
         "eval_steps": 16,
         "save_steps": 16,
         "logging_steps": 1,
-        "learning_rate": 0.00002,
+        "learning_rate": 0.00001,
         "num_train_epochs": 1,
         "lr_scheduler_type": "cosine",
         "warmup_steps": 16,
@@ -19,7 +19,7 @@
         "seed": 1337,
         "remove_unused_columns": false,
         "max_grad_norm": 1.0,
-        "weight_decay": 0.01
+        "weight_decay": 0.05
     },
     "lora": {
         "r": 64,
@@ -33,7 +33,7 @@
         "loss_type": "simpo",
         "cpo_alpha": 0,
         "beta": 2.5,
-        "simpo_gamma": 0.5,
+        "simpo_gamma": 0.25,
         "max_prompt_length": 12228,
         "max_completion_length": 12228,
         "max_length": 12228

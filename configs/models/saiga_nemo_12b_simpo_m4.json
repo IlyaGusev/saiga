@@ -22,8 +22,8 @@
         "weight_decay": 0.01
     },
     "lora": {
-        "r": 64,
-        "lora_alpha": 16,
+        "r": 128,
+        "lora_alpha": 32,
         "lora_dropout": 0.0,
         "bias": "none",
         "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
@@ -32,7 +32,7 @@
     "cpo": {
         "loss_type": "simpo",
         "cpo_alpha": 0,
-        "beta": 2.5,
+        "beta": 2.0,
         "simpo_gamma": 0.5,
         "max_prompt_length": 12228,
         "max_completion_length": 12228,
