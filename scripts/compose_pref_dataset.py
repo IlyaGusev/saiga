@@ -40,7 +40,9 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
         max_length_ratio = config.get("max_length_ratio", 2.1)
         max_length_ratio_prob = config.get("max_length_ratio_prob", 0.0)
         if len(str(row["chosen"])) > len(str(row["rejected"])) * max_length_ratio:
-            if random.random() > max_length_ratio_prob:
+            s = str(row["prompt"]) + str(row["chosen"])
+            h = mmh3.hash(s, 1337, signed=False)
+            if h % 100 > max_length_ratio_prob * 100.0:
                 continue
 
         sonnet_approved_only = config.get("sonnet_approved_only", False)
