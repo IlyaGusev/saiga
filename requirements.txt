@@ -13,4 +13,5 @@ fire >= 0.6.0
 flake8 >= 7.0.0
 mmh3 >= 4.1.0
 
-git+https://github.com/unslothai/unsloth@ae9e264e33c69b53dd5d533a4c5a264af4141c28
+git+https://github.com/unslothai/unsloth@38663b01f5dd0e610b12475bd95b144303cff539
+git+https://github.com/unslothai/unsloth-zoo@9c463920d49d4d438b681e27295e5bb4cfd3a351
