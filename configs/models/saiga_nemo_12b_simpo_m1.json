@@ -40,10 +40,10 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m2_d11",
+    "model_name": "models/saiga_nemo_12b_sft_m9_d16",
     "max_seq_length": 16384,
     "max_tokens_count": 16384,
     "bos_token": "<s>",
     "eos_token": "</s>",
-    "pad_token": "<s>"
+    "pad_token": "<pad>"
 }

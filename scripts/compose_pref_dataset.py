@@ -31,7 +31,7 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
             if row["source"] not in sources:
                 continue
 
-        is_bad_by_regex = row["is_bad_by_regex"]
+        is_bad_by_regex = row.get("is_bad_by_regex", False)
         if config.get("exclude_regex", False) and is_bad_by_regex:
             continue
 

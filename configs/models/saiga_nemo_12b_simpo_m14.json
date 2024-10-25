@@ -31,7 +31,7 @@
     },
     "cpo": {
         "loss_type": "simpo",
-        "cpo_alpha": 0.3,
+        "cpo_alpha": 0.15,
         "beta": 1.2,
         "simpo_gamma": 0.4,
         "max_prompt_length": 12228,

@@ -40,7 +40,7 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m6_d14",
+    "model_name": "models/saiga_nemo_12b_sft_m9_d16",
     "max_seq_length": 12228,
     "max_tokens_count": 12228,
     "bos_token": "<s>",

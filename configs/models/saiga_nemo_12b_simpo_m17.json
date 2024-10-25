@@ -7,8 +7,8 @@
         "eval_steps": 16,
         "save_steps": 16,
         "logging_steps": 1,
-        "learning_rate": 0.000008,
-        "num_train_epochs": 2,
+        "learning_rate": 0.000015,
+        "num_train_epochs": 1,
         "lr_scheduler_type": "cosine",
         "warmup_steps": 16,
         "bf16": true,
@@ -19,7 +19,7 @@
         "seed": 1337,
         "remove_unused_columns": false,
         "max_grad_norm": 1.0,
-        "weight_decay": 0.1
+        "weight_decay": 0.04
     },
     "lora": {
         "r": 128,
@@ -32,15 +32,15 @@
     "cpo": {
         "loss_type": "simpo",
         "cpo_alpha": 0.2,
-        "beta": 2.5,
-        "simpo_gamma": 0.8,
+        "beta": 5.0,
+        "simpo_gamma": 1.2,
         "max_prompt_length": 12228,
         "max_completion_length": 12228,
         "max_length": 12228
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m6_d14_simpo_m16_d27",
+    "model_name": "models/saiga_nemo_12b_sft_m9_d14",
     "max_seq_length": 12228,
     "max_tokens_count": 12228,
     "bos_token": "<s>",
