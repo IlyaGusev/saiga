@@ -26,6 +26,11 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
                 if k in field_mapping:
                     row[field_mapping[k]] = row.pop(k)
 
+        sources = config.get("sources", [])
+        if sources:
+            if row["source"] not in sources:
+                continue
+
         is_bad_by_regex = row["is_bad_by_regex"]
         if config.get("exclude_regex", False) and is_bad_by_regex:
             continue

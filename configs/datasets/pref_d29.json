@@ -1,0 +1,7 @@
+{
+    "dataset_name": "IlyaGusev/saiga_preferences",
+    "dataset_revision": "66cdc692bd168045e9c2e1b6d7e1a0c033cfda53",
+    "sources": ["saiga_nemo_on_policy"],
+    "max_length_ratio": 1.8,
+    "exclude_regex": true
+}
