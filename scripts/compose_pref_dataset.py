@@ -31,6 +31,11 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
             if row["source"] not in sources:
                 continue
 
+        chosen_models = config.get("chosen_models", [])
+        if chosen_models:
+            if row["chosen_model"] not in chosen_models:
+                continue
+
         is_bad_by_regex = row.get("is_bad_by_regex", False)
         if config.get("exclude_regex", False) and is_bad_by_regex:
             continue
