@@ -7,7 +7,7 @@
         "eval_steps": 16,
         "save_steps": 16,
         "logging_steps": 1,
-        "learning_rate": 0.00001,
+        "learning_rate": 0.000015,
         "num_train_epochs": 1,
         "lr_scheduler_type": "cosine",
         "warmup_steps": 16,
@@ -19,11 +19,11 @@
         "seed": 1337,
         "remove_unused_columns": false,
         "max_grad_norm": 1.0,
-        "weight_decay": 0.01
+        "weight_decay": 0.05
     },
     "lora": {
-        "r": 64,
-        "lora_alpha": 16,
+        "r": 256,
+        "lora_alpha": 64,
         "lora_dropout": 0.0,
         "bias": "none",
         "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
@@ -31,16 +31,16 @@
     },
     "cpo": {
         "loss_type": "simpo",
-        "cpo_alpha": 0.1,
+        "cpo_alpha": 0.15,
         "beta": 2.5,
-        "simpo_gamma": 0.5,
+        "simpo_gamma": 0.7,
         "max_prompt_length": 12228,
         "max_completion_length": 12228,
         "max_length": 12228
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m9_d14",
+    "model_name": "models/saiga_nemo_12b_sft_m9_d16",
     "max_seq_length": 12228,
     "max_tokens_count": 12228,
     "bos_token": "<s>",
