@@ -1,5 +1,6 @@
 import json
 import random
+from itertools import chain
 
 import mmh3
 import fire
@@ -19,8 +20,12 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
     records = []
     dataset_name = config.get("dataset_name", "IlyaGusev/saiga_preferences")
     revision = config["dataset_revision"]
+    if isinstance(dataset_name, str):
+        dataset = load_dataset(dataset_name, split="train", revision=revision)
+    elif isinstance(dataset_name, list):
+        dataset = chain(*[load_dataset(name, split="train", revision=r) for name, r in zip(dataset_name, revision)])
     field_mapping = config.get("field_mapping", dict())
-    for row in load_dataset(dataset_name, split="train", revision=revision):
+    for row in dataset:
         if field_mapping:
             for k, v in list(row.items()):
                 if k in field_mapping:
