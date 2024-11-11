@@ -1,0 +1,7 @@
+{
+    "dataset_name": ["IlyaGusev/saiga_preferences", "IlyaGusev/saiga_scored_orig_vs_nemo"],
+    "dataset_revision": ["113226fc304b80cfec407b8f41f056ab9f344a49", "4e5598c0e7fbcdc15a076f7a3ed079c8562dfd80"],
+    "max_length_ratio": 1.5,
+    "max_length_ratio_prob": 0.2,
+    "exclude_regex": true
+}
