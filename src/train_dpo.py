@@ -20,54 +20,8 @@ from trl import DPOConfig, DPOTrainer
 from datasets import Dataset as HFDataset
 from unsloth import PatchDPOTrainer, FastLanguageModel
 
+from src.dpo_dataset import DPODataset
 from src.util.io import read_jsonl
-
-
-class ChatDPODataset(Dataset):
-    def __init__(
-        self,
-        original_records: List[Dict],
-        tokenizer: AutoTokenizer,
-        max_tokens_count: int,
-        sample_rate: float = 1.0,
-    ):
-        self.original_records = original_records
-        self.tokenizer = tokenizer
-        self.max_tokens_count = max_tokens_count
-        self.sample_rate = sample_rate
-
-        self.records = []
-        for record in tqdm(original_records):
-            if random.random() > self.sample_rate:
-                continue
-
-            prompt_messages = record["prompt"]
-            prompt = self.tokenizer.apply_chat_template(
-                prompt_messages, add_generation_prompt=True, tokenize=False
-            )
-            prompt = prompt.replace(self.tokenizer.bos_token, "")
-
-            prompt_tokens = self.tokenizer.apply_chat_template(
-                prompt_messages, add_generation_prompt=True, tokenize=True
-            )
-            chosen = record["chosen"][0]["content"]
-            chosen_tokens = self.tokenizer(chosen)["input_ids"]
-
-            rejected = record["rejected"][0]["content"]
-            rejected_tokens = self.tokenizer(rejected)["input_ids"]
-
-            if len(prompt_tokens) + len(chosen_tokens) > self.max_tokens_count - 10:
-                continue
-            if len(prompt_tokens) + len(rejected_tokens) > self.max_tokens_count - 10:
-                continue
-
-            self.records.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
-
-    def __len__(self):
-        return len(self.records)
-
-    def __getitem__(self, index):
-        return self.records[index]
 
 
 def train(
@@ -105,7 +59,7 @@ def train(
         )
 
     train_records = read_jsonl(train_path)
-    train_dataset = ChatDPODataset(
+    train_dataset = DPODataset(
         train_records,
         tokenizer=tokenizer,
         max_tokens_count=max_tokens_count,
@@ -113,7 +67,7 @@ def train(
     )
     train_dataset = HFDataset.from_list(train_dataset)
     eval_records = read_jsonl(eval_path)
-    eval_dataset = ChatDPODataset(
+    eval_dataset = DPODataset(
         eval_records,
         tokenizer=tokenizer,
         max_tokens_count=max_tokens_count,
@@ -134,7 +88,7 @@ def train(
         model=model,
         ref_model=None,
         args=training_args,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
     )
