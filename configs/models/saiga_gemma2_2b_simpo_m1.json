@@ -18,8 +18,7 @@
         "save_total_limit": 2,
         "seed": 1337,
         "remove_unused_columns": false,
-        "max_grad_norm": 1.0,
-        "weight_decay": 0.08
+        "weight_decay": 0.03
     },
     "lora": {
         "r": 128,
@@ -33,17 +32,17 @@
         "loss_type": "simpo",
         "cpo_alpha": 0.3,
         "beta": 2.5,
-        "simpo_gamma": 0.7,
-        "max_prompt_length": 10240,
-        "max_completion_length": 10240,
-        "max_length": 10240
+        "simpo_gamma": 0.6,
+        "max_prompt_length": 4096,
+        "max_completion_length": 4096,
+        "max_length": 4096
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m9_d16",
-    "max_seq_length": 10240,
-    "max_tokens_count": 10240,
-    "bos_token": "<s>",
-    "eos_token": "</s>",
+    "model_name": "models/saiga_gemma2_2b_sft_m1_d14",
+    "max_seq_length": 4096,
+    "max_tokens_count": 4096,
+    "bos_token": "<bos>",
+    "eos_token": "<eos>",
     "pad_token": "<pad>"
 }

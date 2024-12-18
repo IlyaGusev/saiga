@@ -19,7 +19,7 @@
         "seed": 1337,
         "remove_unused_columns": false,
         "max_grad_norm": 1.0,
-        "weight_decay": 0.08
+        "weight_decay": 0.1
     },
     "lora": {
         "r": 128,
@@ -31,8 +31,8 @@
     },
     "cpo": {
         "loss_type": "simpo",
-        "cpo_alpha": 0.3,
-        "beta": 2.5,
+        "cpo_alpha": 0.6,
+        "beta": 2.0,
         "simpo_gamma": 0.7,
         "max_prompt_length": 10240,
         "max_completion_length": 10240,
@@ -40,7 +40,7 @@
     },
     "load_in_8bit": false,
     "load_in_4bit": true,
-    "model_name": "models/saiga_nemo_12b_sft_m9_d16",
+    "model_name": "models/saiga_nemo_12b_sft_m10_d18",
     "max_seq_length": 10240,
     "max_tokens_count": 10240,
     "bos_token": "<s>",
