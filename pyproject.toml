@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "saiga-wsl2"
+package-mode = false
+version = "0.1.0"
+description = ""
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = {version = "2.5.1+cu121", source = "torch-repo"}
+numpy = "<2"
+transformers = "4.46.2"
+peft = "0.13.0"
+accelerate = "0.34.2"
+bitsandbytes = "0.44.1"
+vllm = "^0.6.2"
+trl = "0.12.1"
+wandb = "^0.17.0"
+fire = "^0.6.0"
+flake8 = "^7.0.0"
+mmh3 = "^4.1.0"
+psutil = "^6.1.1"
+xformers = "^0.0.28.post3"
+flash-attn = "1.0.5"
+unsloth = {git = "https://github.com/unslothai/unsloth", rev = "f26d4e739ed507de7a9088da53d10fd02f58d160"}
+unsloth-zoo = {git = "https://github.com/unslothai/unsloth-zoo", rev = "f5421838ef8278cf96d0092d8271ecd6d433588c"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[[tool.poetry.source]]
+name = "torch-repo"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"
