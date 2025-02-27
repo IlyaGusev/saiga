@@ -6,9 +6,10 @@ from itertools import chain
 import mmh3
 import fire
 from datasets import load_dataset
+from tqdm import tqdm
 
 
-def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
+def compose_sft_dataset(config_path: str, train_path: str, val_path: str, train_part: int = 97):
     with open(config_path) as r:
         config = json.load(r)
 
@@ -21,7 +22,8 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
     elif isinstance(dataset_name, list):
         dataset = chain(*[load_dataset(name, split="train", revision=r) for name, r in zip(dataset_name, revision)])
 
-    for row in dataset:
+    hashes = set()
+    for row in tqdm(dataset):
         is_bad_by_regex = row.get("is_bad_by_regex", False)
         if config.get("exclude_regex", False) and is_bad_by_regex:
             continue
@@ -33,6 +35,8 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
         all_messages = []
         if "messages" in row:
             all_messages.append(row["messages"])
+        elif "conversation" in row:
+            all_messages.append(row["conversation"])
         elif "chosen" in row:
             all_messages.append(row["prompt"] + row["chosen"])
             if add_rejected:
@@ -45,6 +49,13 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
             for message in messages:
                 message["role"] = mapping.get(message["role"], message["role"])
             row["messages"] = messages
+
+            s = str(row["messages"])
+            h = mmh3.hash(s, signed=False)
+            if h in hashes:
+                continue
+
+            hashes.add(h)
             records.append(copy.deepcopy(row))
 
     random.shuffle(records)
@@ -54,7 +65,7 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str):
     for r in records:
         s = str(r["messages"])
         h = mmh3.hash(s, signed=False)
-        if h % 100 < 97:
+        if h % 100 < train_part:
             train_records.append(r)
         else:
             val_records.append(r)

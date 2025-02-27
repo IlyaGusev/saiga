@@ -1,5 +1,6 @@
 import os
 import json
+from collections import Counter
 
 import fire
 import wandb
@@ -13,6 +14,7 @@ from src.util.io import read_jsonl
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 torch._dynamo.config.cache_size_limit = 128
+
 
 class CustomTrainer(Trainer):
     def create_optimizer(self):
@@ -30,13 +32,64 @@ class CustomTrainer(Trainer):
         return self.optimizer
 
 
+@torch.inference_mode
+def fix_untrained_tokens(model, tokenizer, eps: float = 1e-16) -> None:
+    embedding_matrix = model.get_input_embeddings().weight
+    lm_head_matrix = model.get_output_embeddings().weight
+    assert embedding_matrix.shape[0] == lm_head_matrix.shape[0]
+
+    indicator_untrained = torch.amax(embedding_matrix, axis=1) <= eps
+    special_tokens = (
+        "bos_token",
+        "eos_token",
+        "unk_token",
+        "sep_token",
+        "pad_token",
+        "cls_token",
+        "mask_token",
+    )
+    for special_token in special_tokens:
+        if hasattr(tokenizer, special_token + "_id"):
+            token_id = eval(f"tokenizer.{special_token}_id")
+            if token_id is not None and token_id < indicator_untrained.shape[0]:
+                indicator_untrained[token_id] = False
+
+    where_untrained = torch.where(indicator_untrained)[0]
+    n_untrained = where_untrained.shape[0]
+    n_trained = embedding_matrix.shape[0] - n_untrained
+    if n_untrained == 0:
+        return
+
+    where_untrained = where_untrained.tolist()
+    where_untrained_set = frozenset(where_untrained)
+    actual_bad_tokens = tokenizer.convert_ids_to_tokens(where_untrained)
+    actual_bad_tokens = [x for x in actual_bad_tokens if x is not None]
+
+    sum_embedding = torch.sum(embedding_matrix, dtype=torch.float32, axis=0)
+    sum_lm_head = torch.sum(lm_head_matrix, dtype=torch.float32, axis=0)
+
+    sum_embedding -= torch.sum(embedding_matrix[where_untrained], dtype=torch.float32, axis=0)
+    sum_lm_head -= torch.sum(lm_head_matrix[where_untrained], dtype=torch.float32, axis=0)
+
+    mean_embedding = sum_embedding / n_trained
+    mean_lm_head = sum_lm_head / n_trained
+
+    mean_embedding = mean_embedding.repeat((n_untrained, 1))
+    mean_lm_head = mean_lm_head.repeat((n_untrained, 1))
+
+    embedding_matrix[where_untrained] = mean_embedding.to(embedding_matrix.dtype)
+    lm_head_matrix[where_untrained] = mean_lm_head.to(lm_head_matrix.dtype)
+
+    torch.cuda.empty_cache()
+
+
 def train(
     config_path: str,
     train_path: str,
     val_path: str,
     output_dir: str,
     sample_rate: float = 1.0,
-):
+) -> None:
     with open(config_path) as r:
         config = json.load(r)
 
@@ -57,15 +110,18 @@ def train(
     tokenizer.padding_side = "left"
     tokenizer.save_pretrained(output_dir)
 
+    if config.get("fix_untrained_tokens", False):
+        fix_untrained_tokens(model, tokenizer)
+
     lora_config = config.get("lora")
     if lora_config:
-        model = FastLanguageModel.get_peft_model(
-            model, **config["lora"], max_seq_length=max_seq_length
-        )
+        model = FastLanguageModel.get_peft_model(model, **config["lora"], max_seq_length=max_seq_length)
         modules_to_save = config["lora"].get("modules_to_save", [])
         if tie_word_embeddings and "embed_tokens" in modules_to_save and "lm_head" in modules_to_save:
             print("Tying lm_head and embed_tokens...")
-            model.base_model.model.model.embed_tokens.modules_to_save["default"].weight = model.base_model.model.lm_head.modules_to_save["default"].weight
+            model.base_model.model.model.embed_tokens.modules_to_save["default"].weight = (
+                model.base_model.model.lm_head.modules_to_save["default"].weight
+            )
 
     train_records = read_jsonl(train_path)
     val_records = read_jsonl(val_path)
@@ -91,6 +147,7 @@ def train(
         wandb.init(project="rulm_self_instruct", name=config_path)
     trainer = CustomTrainer(
         model=model,
+        processing_class=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         data_collator=data_collator,

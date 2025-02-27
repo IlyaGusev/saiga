@@ -1,17 +1,17 @@
 torch >= 2.3.0
-transformers == 4.46.2
-peft == 0.13.0
-accelerate == 0.34.2
-bitsandbytes == 0.44.1
+transformers == 4.49.0
+peft == 0.14.0
+accelerate == 1.4.0
+bitsandbytes == 0.45.3
 xformers == 0.0.27.post2
-flash-attn == 2.6.3
 vllm == 0.6.2
 trl == 0.12.1
+flash-attn == 2.6.3
 
 wandb >= 0.17.0
 fire >= 0.6.0
 flake8 >= 7.0.0
 mmh3 >= 4.1.0
 
-git+https://github.com/unslothai/unsloth@f26d4e739ed507de7a9088da53d10fd02f58d160
-git+https://github.com/unslothai/unsloth-zoo@f5421838ef8278cf96d0092d8271ecd6d433588c
+unsloth == 2025.2.15
+unsloth-zoo == 2025.2.7
