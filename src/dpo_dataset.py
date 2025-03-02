@@ -13,6 +13,7 @@ class DPODataset(Dataset):
         tokenizer: AutoTokenizer,
         max_tokens_count: int,
         sample_rate: float = 1.0,
+        apply_chat_template: bool = False
     ):
         self.original_records = original_records
         self.tokenizer = tokenizer
@@ -38,8 +39,13 @@ class DPODataset(Dataset):
                 continue
             if len(rejected_tokens) > self.max_tokens_count - 5:
                 continue
-
-            self.records.append({"prompt": prompt_messages, "chosen": chosen_messages, "rejected": rejected_messages})
+            if not apply_chat_template:
+                self.records.append({"prompt": prompt_messages, "chosen": chosen_messages, "rejected": rejected_messages})
+            else:
+                prompt = tokenizer.apply_chat_template(prompt_messages, tokenize=False)
+                chosen = tokenizer.apply_chat_template(chosen_messages, tokenize=False)
+                rejected = tokenizer.apply_chat_template(rejected_messages, tokenize=False)
+                self.records.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
 
     def __len__(self):
         return len(self.records)

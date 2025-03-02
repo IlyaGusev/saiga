@@ -1,0 +1,6 @@
+{
+    "dataset_name": ["IlyaGusev/saiga_scored", "Vikhrmodels/GrandMaster-PRO-MAX"],
+    "dataset_revision": ["69b69f456e74cc5b8291862baf86cbf66d32d5f9", "de9cc765d834f6d14f03155fe9c78b0b6c992b4c"],
+    "min_score": 8,
+    "exclude_regex": true
+}
