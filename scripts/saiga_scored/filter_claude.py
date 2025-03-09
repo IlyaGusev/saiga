@@ -33,6 +33,7 @@ Only rate messages from the ASSISTANT in this conversation:
 Return only a JSON with the following format: {{"explanation": "...", "score": ...}}
 """
 
+
 def to_conversation(r):
     return "\n\n".join([f'{m["role"].upper()}: {m["content"]}' for m in r["messages"]])
 
@@ -42,9 +43,7 @@ def to_key(r):
 
 
 def filter_claude(
-    input_path: str,
-    output_path: str,
-    model_name: str = "claude-3-5-sonnet-20241022"
+    input_path: str, output_path: str, model_name: str = "claude-3-5-sonnet-20241022"
 ):
     records = read_jsonl(input_path)
     output_records = []
@@ -63,8 +62,7 @@ def filter_claude(
             continue
         prompt = PROMPT.format(conversation=conversation)
         answer = anthropic_completion(
-            [{"role": "user", "content": prompt}],
-            model_name=model_name
+            [{"role": "user", "content": prompt}], model_name=model_name
         )
         print(prompt)
         print(answer)

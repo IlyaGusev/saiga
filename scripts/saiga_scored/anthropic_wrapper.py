@@ -56,7 +56,7 @@ def anthropic_list_models():
     models = (
         inspect.signature(Anthropic().messages.create).parameters["model"].annotation
     )
-    models = models[models.find("Literal") + len("Literal"): -1]
+    models = models[models.find("Literal") + len("Literal") : -1]
     models = models.replace("'", '"')
     models = json.loads(models)
     return models

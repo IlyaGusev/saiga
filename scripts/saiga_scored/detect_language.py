@@ -8,17 +8,19 @@ from src.util.io import read_jsonl, write_jsonl
 
 
 class FasttextLanguageDetector:
-    def __init__(self, model_path: str = "models/lid.176.bin", max_tokens: int = 50) -> None:
+    def __init__(
+        self, model_path: str = "models/lid.176.bin", max_tokens: int = 50
+    ) -> None:
         self.model = ft_load_model(model_path)
         self.label_offset = len("__label__")
         self.max_tokens = max_tokens
 
     def __call__(self, text: str) -> Tuple[str, float]:
         text = text.replace("\xa0", " ").strip()
-        text = " ".join(text.split()[:self.max_tokens])
+        text = " ".join(text.split()[: self.max_tokens])
 
         (label,), (prob,) = self.model.predict(text, k=1)
-        label = label[self.label_offset:]
+        label = label[self.label_offset :]
         return label, prob
 
 
@@ -35,11 +37,7 @@ def detect_language(input_path: str, output_path: str) -> None:
             r["language"] = "Mixed"
             records.append(r)
             continue
-        mapping = {
-            "ru": "Russian",
-            "en": "English",
-            "uk": "Ukrainian"
-        }
+        mapping = {"ru": "Russian", "en": "English", "uk": "Ukrainian"}
         if most_common_language not in mapping:
             print(languages)
             continue

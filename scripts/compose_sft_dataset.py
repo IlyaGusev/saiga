@@ -9,7 +9,9 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 
-def compose_sft_dataset(config_path: str, train_path: str, val_path: str, train_part: int = 97):
+def compose_sft_dataset(
+    config_path: str, train_path: str, val_path: str, train_part: int = 97
+):
     with open(config_path) as r:
         config = json.load(r)
 
@@ -20,7 +22,12 @@ def compose_sft_dataset(config_path: str, train_path: str, val_path: str, train_
     if isinstance(dataset_name, str):
         dataset = load_dataset(dataset_name, split="train", revision=revision)
     elif isinstance(dataset_name, list):
-        dataset = chain(*[load_dataset(name, split="train", revision=r) for name, r in zip(dataset_name, revision)])
+        dataset = chain(
+            *[
+                load_dataset(name, split="train", revision=r)
+                for name, r in zip(dataset_name, revision)
+            ]
+        )
 
     hashes = set()
     for row in tqdm(dataset):

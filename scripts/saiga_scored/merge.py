@@ -16,7 +16,7 @@ def read_jsonl(file_name):
 
 
 def generate_ngrams(elements, n: int):
-    return {tuple(elements[i:i+n]) for i in range(len(elements) - n + 1)}
+    return {tuple(elements[i : i + n]) for i in range(len(elements) - n + 1)}
 
 
 def undup_by_ngrams(records, n: int = 8):

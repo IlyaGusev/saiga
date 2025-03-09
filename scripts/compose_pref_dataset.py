@@ -8,9 +8,9 @@ from datasets import load_dataset
 
 
 def fix_text(text):
-     text = text.replace("\xa0", " ").strip()
-     text = text.replace("\\xa0", " ").strip()
-     return text
+    text = text.replace("\xa0", " ").strip()
+    text = text.replace("\\xa0", " ").strip()
+    return text
 
 
 def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
@@ -23,7 +23,12 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
     if isinstance(dataset_name, str):
         dataset = load_dataset(dataset_name, split="train", revision=revision)
     elif isinstance(dataset_name, list):
-        dataset = chain(*[load_dataset(name, split="train", revision=r) for name, r in zip(dataset_name, revision)])
+        dataset = chain(
+            *[
+                load_dataset(name, split="train", revision=r)
+                for name, r in zip(dataset_name, revision)
+            ]
+        )
     field_mapping = config.get("field_mapping", dict())
     for row in dataset:
         if field_mapping:
@@ -47,7 +52,7 @@ def compose_pref_dataset(config_path: str, train_path: str, val_path: str):
 
         if isinstance(row["chosen"], str):
             row["chosen"] = [{"role": "assistant", "content": row["chosen"]}]
-        if isinstance(row["rejected"],  str):
+        if isinstance(row["rejected"], str):
             row["rejected"] = [{"role": "assistant", "content": row["rejected"]}]
         if isinstance(row["prompt"], str):
             row["prompt"] = [{"role": "user", "content": row["prompt"]}]
