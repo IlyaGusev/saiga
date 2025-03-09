@@ -24,14 +24,11 @@ def generate(
         truncation=True,
         max_length=source_max_length,
         padding=True,
-        add_special_tokens=False
+        add_special_tokens=False,
     )
     assert data["input_ids"][0][0] != data["input_ids"][0][1]
     data = {k: v.to(model.device) for k, v in data.items()}
-    output_ids = model.generate(
-        **data,
-        generation_config=generation_config
-    )
+    output_ids = model.generate(**data, generation_config=generation_config)
     outputs = []
     for sample_output_ids, sample_input_ids in zip(output_ids, data["input_ids"]):
         sample_output_ids = sample_output_ids[len(sample_input_ids):]
@@ -47,7 +44,6 @@ def generate_answers(
     batch_size: int = 1,
     load_in_8bit: bool = False,
 ):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     generation_config = GenerationConfig.from_pretrained(model_name)
 
@@ -61,7 +57,9 @@ def generate_answers(
     model.eval()
 
     if batch_size > 1:
-        assert tokenizer.padding_side == "left", "Batched inference for right padding side is impossible"
+        assert (
+            tokenizer.padding_side == "left"
+        ), "Batched inference for right padding side is impossible"
     records = read_jsonl(input_path)
 
     with open(output_path, "w") as w:
@@ -84,16 +82,20 @@ def generate_answers(
                 model=model,
                 tokenizer=tokenizer,
                 prompts=prompts,
-                generation_config=generation_config
+                generation_config=generation_config,
             )
             for record, prompt, output in zip(batch, prompts, outputs):
                 print(prompt)
                 print(output)
                 print()
                 print()
-                record["instruction"] = record["instruction"].encode("utf-8").decode("utf-8", "ignore")
+                record["instruction"] = (
+                    record["instruction"].encode("utf-8").decode("utf-8", "ignore")
+                )
                 if "input" in record and record["input"]:
-                    record["input"] = record["input"].encode("utf-8").decode("utf-8", "ignore")
+                    record["input"] = (
+                        record["input"].encode("utf-8").decode("utf-8", "ignore")
+                    )
                 record["answer"] = output.encode("utf-8").decode("utf-8", "ignore")
                 w.write(json.dumps(record, ensure_ascii=False).strip() + "\n")
 

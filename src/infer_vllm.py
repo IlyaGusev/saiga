@@ -22,7 +22,7 @@ def infer_vllm(
     repetition_penalty: float = 1.1,
     enable_system_prompt: bool = False,
     remove_bos_token: bool = False,
-    quantization: Optional[str] = None
+    quantization: Optional[str] = None,
 ):
     sampling_params = SamplingParams(
         temperature=temperature,

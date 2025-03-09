@@ -22,7 +22,9 @@ class CustomTrainer(Trainer):
         if embedding_learning_rate is None:
             return super().create_optimizer()
         if self.optimizer is None:
-            optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(self.args)
+            optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(
+                self.args
+            )
             self.optimizer = _create_unsloth_optimizer(
                 self.model,
                 optimizer_cls,
@@ -61,15 +63,18 @@ def fix_untrained_tokens(model, tokenizer, eps: float = 1e-16) -> None:
         return
 
     where_untrained = where_untrained.tolist()
-    where_untrained_set = frozenset(where_untrained)
     actual_bad_tokens = tokenizer.convert_ids_to_tokens(where_untrained)
     actual_bad_tokens = [x for x in actual_bad_tokens if x is not None]
 
     sum_embedding = torch.sum(embedding_matrix, dtype=torch.float32, axis=0)
     sum_lm_head = torch.sum(lm_head_matrix, dtype=torch.float32, axis=0)
 
-    sum_embedding -= torch.sum(embedding_matrix[where_untrained], dtype=torch.float32, axis=0)
-    sum_lm_head -= torch.sum(lm_head_matrix[where_untrained], dtype=torch.float32, axis=0)
+    sum_embedding -= torch.sum(
+        embedding_matrix[where_untrained], dtype=torch.float32, axis=0
+    )
+    sum_lm_head -= torch.sum(
+        lm_head_matrix[where_untrained], dtype=torch.float32, axis=0
+    )
 
     mean_embedding = sum_embedding / n_trained
     mean_lm_head = sum_lm_head / n_trained
@@ -115,13 +120,19 @@ def train(
 
     lora_config = config.get("lora")
     if lora_config:
-        model = FastLanguageModel.get_peft_model(model, **config["lora"], max_seq_length=max_seq_length)
+        model = FastLanguageModel.get_peft_model(
+            model, **config["lora"], max_seq_length=max_seq_length
+        )
         modules_to_save = config["lora"].get("modules_to_save", [])
-        if tie_word_embeddings and "embed_tokens" in modules_to_save and "lm_head" in modules_to_save:
+        if (
+            tie_word_embeddings
+            and "embed_tokens" in modules_to_save
+            and "lm_head" in modules_to_save
+        ):
             print("Tying lm_head and embed_tokens...")
-            model.base_model.model.model.embed_tokens.modules_to_save["default"].weight = (
-                model.base_model.model.lm_head.modules_to_save["default"].weight
-            )
+            model.base_model.model.model.embed_tokens.modules_to_save[
+                "default"
+            ].weight = model.base_model.model.lm_head.modules_to_save["default"].weight
 
     train_records = read_jsonl(train_path)
     val_records = read_jsonl(val_path)
