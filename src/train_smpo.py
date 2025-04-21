@@ -6,6 +6,7 @@ from typing import List, Dict
 import wandb
 import numpy as np
 import torch
+from unsloth import PatchDPOTrainer, FastLanguageModel
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from transformers import (
@@ -17,7 +18,6 @@ from transformers import (
 )
 from peft import LoraConfig, get_peft_model
 from datasets import Dataset as HFDataset
-from unsloth import PatchDPOTrainer, FastLanguageModel
 
 from src.smpo_trainer import SimpleMarginPOConfig, SimpleMarginPOTrainer
 from src.dpo_dataset import DPODataset

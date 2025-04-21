@@ -2,16 +2,18 @@ import os
 import json
 from collections import Counter
 
+import unsloth
+from unsloth import FastLanguageModel, UnslothTrainingArguments
+from unsloth.trainer import _create_unsloth_optimizer
+from transformers import DataCollatorForTokenClassification, Trainer, DataCollatorWithPadding, DefaultDataCollator
 import fire
 import wandb
 import torch
-from transformers import DataCollatorForTokenClassification, Trainer
-from unsloth import FastLanguageModel, UnslothTrainingArguments
-from unsloth.trainer import _create_unsloth_optimizer
 
 from src.dataset import ChatDataset
 from src.util.io import read_jsonl
 
+os.environ["UNSLOTH_RETURN_LOGITS"] = "0"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 torch._dynamo.config.cache_size_limit = 128
 
@@ -121,13 +123,14 @@ def train(
     lora_config = config.get("lora")
     if lora_config:
         model = FastLanguageModel.get_peft_model(
-            model, **config["lora"], max_seq_length=max_seq_length
+            model, **config["lora"], max_seq_length=max_seq_length,
         )
         modules_to_save = config["lora"].get("modules_to_save", [])
         if (
             tie_word_embeddings
             and "embed_tokens" in modules_to_save
             and "lm_head" in modules_to_save
+            and "gemma3" not in config["model_name"]
         ):
             print("Tying lm_head and embed_tokens...")
             model.base_model.model.model.embed_tokens.modules_to_save[
@@ -151,7 +154,7 @@ def train(
             )
         )
     train_dataset, val_dataset = datasets
-    data_collator = DataCollatorForTokenClassification(tokenizer, pad_to_multiple_of=8)
+    data_collator = DefaultDataCollator()
 
     trainer_config = config["trainer"]
     if trainer_config.get("report_to", "wandb") == "wandb":

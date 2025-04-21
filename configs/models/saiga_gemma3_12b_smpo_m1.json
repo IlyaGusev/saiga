@@ -1,0 +1,49 @@
+{
+    "trainer": {
+        "eval_strategy": "steps",
+        "per_device_train_batch_size": 1,
+        "per_device_eval_batch_size": 1,
+        "gradient_accumulation_steps": 64,
+        "eval_steps": 64,
+        "save_steps": 64,
+        "logging_steps": 1,
+        "learning_rate": 0.00003,
+        "num_train_epochs": 3,
+        "lr_scheduler_type": "cosine",
+        "warmup_steps": 16,
+        "bf16": true,
+        "fp16": false,
+        "optim": "paged_adamw_8bit",
+        "load_best_model_at_end": true,
+        "save_total_limit": 2,
+        "seed": 1337,
+        "remove_unused_columns": false,
+        "max_grad_norm": 1.0,
+        "weight_decay": 0.03
+    },
+    "lora": {
+        "r": 64,
+        "lora_alpha": 32,
+        "lora_dropout": 0.0,
+        "bias": "none",
+        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        "use_gradient_checkpointing": "unsloth"
+    },
+    "smpo": {
+        "beta": 1.9,
+        "margin_min": 0.6,
+        "margin_delta": 0.25,
+        "chosen_sft_ratio": 0.75,
+        "loss_type": "smooth_lower_bound",
+        "max_prompt_length": 4096,
+        "max_completion_length": 4096,
+        "max_length": 4096
+    },
+    "load_in_8bit": false,
+    "load_in_4bit": true,
+    "model_name": "models/saiga_gemma3_12b_sft_m1_hf",
+    "max_tokens_count": 4096,
+    "bos_token": "<bos>",
+    "eos_token": "<eos>",
+    "pad_token": "<pad>"
+}

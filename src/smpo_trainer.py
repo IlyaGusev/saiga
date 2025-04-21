@@ -419,9 +419,15 @@ class SimpleMarginPOTrainer(Trainer):
         full_tokenized = self.processing_class(
             prompt + answer, add_special_tokens=False
         )
+        if isinstance(full_tokenized["input_ids"][0], list):
+            full_tokenized["input_ids"] = full_tokenized["input_ids"][0]
+            full_tokenized["attention_mask"] = full_tokenized["attention_mask"][0]
+
         prompt_input_ids = self.processing_class(prompt, add_special_tokens=False)[
             "input_ids"
         ]
+        if isinstance(prompt_input_ids[0], list):
+            prompt_input_ids = prompt_input_ids[0]
 
         answer_input_ids = full_tokenized["input_ids"][len(prompt_input_ids) :]
         answer_attention_mask = full_tokenized["attention_mask"][
@@ -495,7 +501,7 @@ class SimpleMarginPOTrainer(Trainer):
 
         assert isinstance(prompt, str)
         prompt_tokens = self.processing_class(prompt, add_special_tokens=False)
-        prompt_tokens = {f"prompt_{k}": v for k, v in prompt_tokens.items()}
+        prompt_tokens = {f"prompt_{k}": v[0] if isinstance(v[0], list) else v for k, v in prompt_tokens.items()}
 
         assert isinstance(chosen, str)
         chosen_tokens = self.build_tokenized_answer(prompt, chosen)
@@ -592,6 +598,7 @@ class SimpleMarginPOTrainer(Trainer):
                 len(answer_tokens["prompt_input_ids"]) + longer_response_length
                 > self.max_length
             ):
+                assert False, len(answer_tokens["prompt_input_ids"]) + longer_response_length
                 if self.truncation_mode == "keep_start":
                     for k in ["prompt_input_ids", "prompt_attention_mask"]:
                         answer_tokens[k] = answer_tokens[k][: self.max_prompt_length]
@@ -607,6 +614,7 @@ class SimpleMarginPOTrainer(Trainer):
                 len(answer_tokens["prompt_input_ids"]) + longer_response_length
                 > self.max_length
             ):
+                assert False, len(answer_tokens["prompt_input_ids"]) + longer_response_length
                 for k in ["input_ids", "attention_mask"]:
                     answer_tokens[k] = answer_tokens[k][
                         : self.max_length - self.max_prompt_length
@@ -625,10 +633,12 @@ class SimpleMarginPOTrainer(Trainer):
         chosen_sequence_tokens["labels"][: len(chosen_tokens["prompt_input_ids"])] = [
             self.label_pad_token_id
         ] * len(chosen_tokens["prompt_input_ids"])
+        assert sum([l != self.label_pad_token_id for l in chosen_sequence_tokens["labels"]]) > 0
         rejected_sequence_tokens["labels"] = rejected_sequence_tokens["input_ids"][:]
         rejected_sequence_tokens["labels"][
             : len(rejected_tokens["prompt_input_ids"])
         ] = [self.label_pad_token_id] * len(rejected_tokens["prompt_input_ids"])
+        assert sum([l != self.label_pad_token_id for l in rejected_sequence_tokens["labels"]]) > 0
 
         for k, toks in {
             "chosen_": chosen_sequence_tokens,

@@ -1,4 +1,5 @@
 import random
+import copy
 from typing import List, Dict
 
 import torch
@@ -51,14 +52,19 @@ class ChatDataset(Dataset):
             tokenize=True,
             add_generation_prompt=False,
         )
+        if isinstance(tokens, list) and isinstance(tokens[0], list):
+            tokens = tokens[0]
         if tokens[0] == self.tokenizer.bos_token_id:
             tokens = tokens[1:]
         return tokens
 
     def convert_record(self, record):
-        input_ids, labels = [], []
+        messages = copy.deepcopy(record["messages"])
+        for m in messages:
+            m["content"] = [{"type": "text", "text": m["content"]}]
 
-        for message in record["messages"]:
+        input_ids, labels = [], []
+        for message in messages:
             message_input_ids = self.get_tokens([message])
             message_labels = message_input_ids
             if len(input_ids) + len(message_input_ids) > self.max_tokens_count - 2:
@@ -79,7 +85,7 @@ class ChatDataset(Dataset):
         if not input_ids:
             return None
 
-        original_input_ids = self.get_tokens(record["messages"])
+        original_input_ids = self.get_tokens(messages)
         assert (
             input_ids == original_input_ids[: len(input_ids)]
         ), f"{input_ids} vs {original_input_ids}"
