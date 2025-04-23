@@ -1,5 +1,5 @@
 torch >= 2.3.0
-git+https://github.com/huggingface/transformers@bab605d
+transformers == 4.51.3
 peft == 0.15.1
 accelerate == 1.6.0
 bitsandbytes == 0.45.3
@@ -13,5 +13,5 @@ fire >= 0.6.0
 flake8 >= 7.0.0
 mmh3 >= 4.1.0
 
-git+https://github.com/unslothai/unsloth@05f4875
-git+https://github.com/unslothai/unsloth-zoo@4a66f8b
+git+https://github.com/unslothai/unsloth@6c234d5
+git+https://github.com/IlyaGusev/unsloth-zoo@c3eae19

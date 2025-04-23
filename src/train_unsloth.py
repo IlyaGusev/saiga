@@ -5,7 +5,7 @@ from collections import Counter
 import unsloth
 from unsloth import FastLanguageModel, UnslothTrainingArguments
 from unsloth.trainer import _create_unsloth_optimizer
-from transformers import DataCollatorForTokenClassification, Trainer, DataCollatorWithPadding, DefaultDataCollator
+from transformers import DataCollatorForTokenClassification, Trainer
 import fire
 import wandb
 import torch
@@ -131,6 +131,7 @@ def train(
             and "embed_tokens" in modules_to_save
             and "lm_head" in modules_to_save
             and "gemma3" not in config["model_name"]
+            and "gemma-3" not in config["model_name"]
         ):
             print("Tying lm_head and embed_tokens...")
             model.base_model.model.model.embed_tokens.modules_to_save[
@@ -154,7 +155,7 @@ def train(
             )
         )
     train_dataset, val_dataset = datasets
-    data_collator = DefaultDataCollator()
+    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer.tokenizer, pad_to_multiple_of=8)
 
     trainer_config = config["trainer"]
     if trainer_config.get("report_to", "wandb") == "wandb":
