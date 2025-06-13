@@ -70,16 +70,12 @@ class DPODataset(Dataset):
                 chosen = tokenizer.apply_chat_template(chosen_messages, tokenize=False)
                 chosen = chosen.replace(tokenizer.bos_token, "")
 
-                rejected = tokenizer.apply_chat_template(
-                    rejected_messages, tokenize=False
-                )
+                rejected = tokenizer.apply_chat_template(rejected_messages, tokenize=False)
                 rejected = rejected.replace(tokenizer.bos_token, "")
 
                 assert chosen.strip()
                 assert rejected.strip()
-                self.records.append(
-                    {"prompt": prompt, "chosen": chosen, "rejected": rejected}
-                )
+                self.records.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
 
     def __len__(self):
         return len(self.records)

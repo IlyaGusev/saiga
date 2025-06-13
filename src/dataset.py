@@ -70,13 +70,8 @@ class ChatDataset(Dataset):
             if len(input_ids) + len(message_input_ids) > self.max_tokens_count - 2:
                 break
 
-            labels_mask = [
-                self.labels_pad_token_id for _ in range(len(message_input_ids))
-            ]
-            if (
-                message["role"] not in ("assistant", "bot", "gpt")
-                and self.only_target_loss
-            ):
+            labels_mask = [self.labels_pad_token_id for _ in range(len(message_input_ids))]
+            if message["role"] not in ("assistant", "bot", "gpt") and self.only_target_loss:
                 message_labels = labels_mask
 
             input_ids.extend(message_input_ids)
@@ -86,9 +81,7 @@ class ChatDataset(Dataset):
             return None
 
         original_input_ids = self.get_tokens(messages)
-        assert (
-            input_ids == original_input_ids[: len(input_ids)]
-        ), f"{input_ids} vs {original_input_ids}"
+        assert input_ids == original_input_ids[: len(input_ids)], f"{input_ids} vs {original_input_ids}"
 
         if self.add_global_bos and input_ids[0] != self.tokenizer.bos_token_id:
             input_ids.insert(0, self.tokenizer.bos_token_id)
@@ -114,12 +107,7 @@ class ChatDataset(Dataset):
         input_ids = torch.LongTensor(input_ids)
         labels = torch.LongTensor(labels)
         attention_mask = input_ids.new_ones(input_ids.size())
-        assert (
-            input_ids.size(0)
-            == labels.size(0)
-            == attention_mask.size(0)
-            <= self.max_tokens_count
-        )
+        assert input_ids.size(0) == labels.size(0) == attention_mask.size(0) <= self.max_tokens_count
         return {
             "input_ids": input_ids,
             "labels": labels,

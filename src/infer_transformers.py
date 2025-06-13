@@ -31,7 +31,7 @@ def generate(
     output_ids = model.generate(**data, generation_config=generation_config)
     outputs = []
     for sample_output_ids, sample_input_ids in zip(output_ids, data["input_ids"]):
-        sample_output_ids = sample_output_ids[len(sample_input_ids):]
+        sample_output_ids = sample_output_ids[len(sample_input_ids) :]
         sample_output = tokenizer.decode(sample_output_ids, skip_special_tokens=True)
         outputs.append(sample_output)
     return outputs
@@ -57,9 +57,7 @@ def generate_answers(
     model.eval()
 
     if batch_size > 1:
-        assert (
-            tokenizer.padding_side == "left"
-        ), "Batched inference for right padding side is impossible"
+        assert tokenizer.padding_side == "left", "Batched inference for right padding side is impossible"
     records = read_jsonl(input_path)
 
     with open(output_path, "w") as w:
@@ -74,9 +72,7 @@ def generate_answers(
                 assert messages
                 if messages[-1]["role"] == "assistant":
                     messages = messages[:-1]
-                prompt = tokenizer.apply_chat_template(
-                    messages, tokenize=False, add_generation_prompt=True
-                )
+                prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
                 prompts.append(prompt)
             outputs = generate(
                 model=model,
@@ -89,13 +85,9 @@ def generate_answers(
                 print(output)
                 print()
                 print()
-                record["instruction"] = (
-                    record["instruction"].encode("utf-8").decode("utf-8", "ignore")
-                )
+                record["instruction"] = record["instruction"].encode("utf-8").decode("utf-8", "ignore")
                 if "input" in record and record["input"]:
-                    record["input"] = (
-                        record["input"].encode("utf-8").decode("utf-8", "ignore")
-                    )
+                    record["input"] = record["input"].encode("utf-8").decode("utf-8", "ignore")
                 record["answer"] = output.encode("utf-8").decode("utf-8", "ignore")
                 w.write(json.dumps(record, ensure_ascii=False).strip() + "\n")
 

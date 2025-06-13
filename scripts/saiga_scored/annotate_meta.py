@@ -64,9 +64,7 @@ def to_key(r):
     return "\n\n".join([m["content"] for m in r["messages"] if m["role"] == "user"][:3])
 
 
-def annotate_meta_claude(
-    input_path: str, output_path: str, model_name: str = "claude-3-5-sonnet-20241022"
-):
+def annotate_meta_claude(input_path: str, output_path: str, model_name: str = "claude-3-5-sonnet-20241022"):
     records = read_jsonl(input_path)
     output_records = []
     existing_conversations = set()
@@ -84,9 +82,7 @@ def annotate_meta_claude(
         for _ in range(3):
             try:
                 prompt = PROMPT.format(conversation=conversation)
-                answer = anthropic_completion(
-                    [{"role": "user", "content": prompt}], model_name=model_name
-                )
+                answer = anthropic_completion([{"role": "user", "content": prompt}], model_name=model_name)
                 print(prompt)
                 print(answer)
                 print()

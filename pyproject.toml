@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saiga"
+version = "0.1.0"
+description = "Saiga training package"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.3.0",
+    "transformers==4.51.3",
+    "peft==0.15.1",
+    "accelerate==1.6.0",
+    "bitsandbytes==0.45.3",
+    "xformers==0.0.29.post2",
+    "vllm==0.8.3",
+    "trl==0.15.2",
+    "wandb>=0.17.0",
+    "fire>=0.6.0",
+    "flake8>=7.0.0",
+    "black>=25.1.0",
+    "mypy>=1.15.0",
+    "mmh3>=4.1.0",
+    "unsloth@git+https://github.com/unslothai/unsloth@6c234d5",
+    "unsloth-zoo@git+https://github.com/IlyaGusev/unsloth-zoo@c3eae19"
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+strict = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = "*"
+ignore_missing_imports = true
+follow_imports = "skip"

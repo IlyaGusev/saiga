@@ -8,9 +8,7 @@ from src.util.io import read_jsonl, write_jsonl
 
 
 class FasttextLanguageDetector:
-    def __init__(
-        self, model_path: str = "models/lid.176.bin", max_tokens: int = 50
-    ) -> None:
+    def __init__(self, model_path: str = "models/lid.176.bin", max_tokens: int = 50) -> None:
         self.model = ft_load_model(model_path)
         self.label_offset = len("__label__")
         self.max_tokens = max_tokens

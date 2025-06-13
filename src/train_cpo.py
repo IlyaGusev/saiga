@@ -54,9 +54,7 @@ def train(
 
     lora_config = config["lora"]
     if lora_config:
-        model = FastLanguageModel.get_peft_model(
-            model, **config["lora"], max_seq_length=max_seq_length
-        )
+        model = FastLanguageModel.get_peft_model(model, **config["lora"], max_seq_length=max_seq_length)
 
     train_records = read_jsonl(train_path)
     train_dataset = DPODataset(
@@ -80,9 +78,7 @@ def train(
     if trainer_config.get("report_to", "wandb") == "wandb":
         wandb.init(project="rulm_self_instruct", name=config_file)
 
-    training_args = CPOConfig(
-        output_dir=output_dir, report_to="wandb", **config["cpo"], **trainer_config
-    )
+    training_args = CPOConfig(output_dir=output_dir, report_to="wandb", **config["cpo"], **trainer_config)
 
     trainer = CPOTrainer(
         model=model,

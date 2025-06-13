@@ -59,9 +59,7 @@ def infer_vllm(
         if messages[-1]["role"] == "assistant":
             messages = messages[:-1]
 
-        prompt = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
+        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         if remove_bos_token:
             prompt = prompt.replace(tokenizer.bos_token, "")
 

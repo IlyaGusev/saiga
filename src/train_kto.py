@@ -46,9 +46,7 @@ class ChatKTODataset(Dataset):
                 continue
 
             prompt_messages = record["prompt"]
-            prompt = self.tokenizer.apply_chat_template(
-                prompt_messages, add_generation_prompt=True, tokenize=False
-            )
+            prompt = self.tokenizer.apply_chat_template(prompt_messages, add_generation_prompt=True, tokenize=False)
             prompt = prompt.replace(self.tokenizer.bos_token, "")
 
             prompt_tokens = self.tokenizer.apply_chat_template(
@@ -66,9 +64,7 @@ class ChatKTODataset(Dataset):
                 continue
 
             self.records.append({"prompt": prompt, "completion": chosen, "label": True})
-            self.records.append(
-                {"prompt": prompt, "completion": rejected, "label": False}
-            )
+            self.records.append({"prompt": prompt, "completion": rejected, "label": False})
 
     def __len__(self):
         return len(self.records)
@@ -107,9 +103,7 @@ def train(
 
     lora_config = config["lora"]
     if lora_config:
-        model = FastLanguageModel.get_peft_model(
-            model, **config["lora"], max_seq_length=max_seq_length
-        )
+        model = FastLanguageModel.get_peft_model(model, **config["lora"], max_seq_length=max_seq_length)
 
     train_records = read_jsonl(train_path)
     train_dataset = ChatKTODataset(
@@ -133,9 +127,7 @@ def train(
     if trainer_config.get("report_to", "wandb") == "wandb":
         wandb.init(project="rulm_self_instruct", name=config_file)
 
-    training_args = KTOConfig(
-        output_dir=output_dir, report_to="wandb", **config["kto"], **trainer_config
-    )
+    training_args = KTOConfig(output_dir=output_dir, report_to="wandb", **config["kto"], **trainer_config)
 
     trainer = KTOTrainer(
         model=model,

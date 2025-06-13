@@ -16,10 +16,10 @@ from collections import defaultdict
 
 from src.util.dl import gen_batch
 
+import transformer_lens
+
 # Turn automatic differentiation off to save GPU memory (credit: Undi95)
 torch.set_grad_enabled(False)
-
-import transformer_lens
 
 
 def reformat_texts(texts):
@@ -86,7 +86,7 @@ def get_act_idx(cache_dict, act_name, layer):
 def _generate_with_hooks(
     model: HookedTransformer,
     tokenizer: AutoTokenizer,
-    tokens: Int[Tensor, "batch_size seq_len"],
+    tokens,
     max_tokens_generated: int = 64,
     fwd_hooks=[],
 ) -> List[str]:
@@ -102,9 +102,7 @@ def _generate_with_hooks(
             logits = model(all_tokens[:, : -max_tokens_generated + i])
             next_tokens = logits[:, -1, :].argmax(dim=-1)
             all_tokens[:, -max_tokens_generated + i] = next_tokens
-    return tokenizer.batch_decode(
-        all_tokens[:, tokens.shape[1] :], skip_special_tokens=True
-    )
+    return tokenizer.batch_decode(all_tokens[:, tokens.shape[1] :], skip_special_tokens=True)
 
 
 def get_generations(
@@ -131,30 +129,18 @@ def get_generations(
 
 # Inference-time intervention hook
 def direction_ablation_hook(
-    activation: Float[Tensor, "... d_act"],
+    activation,
     hook: HookPoint,
-    direction: Float[Tensor, "d_act"],
+    direction,
 ):
     if activation.device != direction.device:
         direction = direction.to(activation.device)
-    proj = (
-        einops.einsum(
-            activation, direction.view(-1, 1), "... d_act, d_act single -> ... single"
-        )
-        * direction
-    )
+    proj = einops.einsum(activation, direction.view(-1, 1), "... d_act, d_act single -> ... single") * direction
     return activation - proj
 
 
-def get_orthogonalized_matrix(
-    matrix: Float[Tensor, "... d_model"], vec: Float[Tensor, "d_model"]
-) -> Float[Tensor, "... d_model"]:
-    proj = (
-        einops.einsum(
-            matrix, vec.view(-1, 1), "... d_model, d_model single -> ... single"
-        )
-        * vec
-    )
+def get_orthogonalized_matrix(matrix, vec):
+    proj = einops.einsum(matrix, vec.view(-1, 1), "... d_model, d_model single -> ... single") * vec
     return matrix - proj
 
 
@@ -213,22 +199,16 @@ def abliterate(
     bs = act_collection_batch_size
     harmful = defaultdict(list)
     harmless = defaultdict(list)
-    for harmful_batch, harmless_batch in zip(
-        gen_batch(harmful_tokens, bs), gen_batch(harmless_tokens, bs)
-    ):
+    for harmful_batch, harmless_batch in zip(gen_batch(harmful_tokens, bs), gen_batch(harmless_tokens, bs)):
         harmful_logits, harmful_cache = model.run_with_cache(
             harmful_batch,
-            names_filter=lambda hook_name: any(
-                layer in hook_name for layer in activation_layers
-            ),
+            names_filter=lambda hook_name: any(layer in hook_name for layer in activation_layers),
             device="cpu",
             reset_hooks_end=True,
         )
         harmless_logits, harmless_cache = model.run_with_cache(
             harmless_batch,
-            names_filter=lambda hook_name: any(
-                layer in hook_name for layer in activation_layers
-            ),
+            names_filter=lambda hook_name: any(layer in hook_name for layer in activation_layers),
             device="cpu",
             reset_hooks_end=True,
         )
@@ -248,12 +228,8 @@ def abliterate(
     n_layers = model.cfg.n_layers
     for layer_num in range(1, n_layers):
         for layer in activation_layers:
-            harmful_mean_act = get_act_idx(harmful, layer, layer_num)[:, pos, :].mean(
-                dim=0
-            )
-            harmless_mean_act = get_act_idx(harmless, layer, layer_num)[:, pos, :].mean(
-                dim=0
-            )
+            harmful_mean_act = get_act_idx(harmful, layer, layer_num)[:, pos, :].mean(dim=0)
+            harmless_mean_act = get_act_idx(harmless, layer, layer_num)[:, pos, :].mean(dim=0)
             refusal_dir = harmful_mean_act - harmless_mean_act
             activation_refusals[layer].append(refusal_dir)
             print(layer, layer_num, abs(norm(refusal_dir).mean().item()) * 10000)
@@ -272,27 +248,19 @@ def abliterate(
 
     print("Generating baseline answers...")
     # Calculating baseline answers
-    baseline_generations = get_generations(
-        model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=[]
-    )
+    baseline_generations = get_generations(model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=[])
     print("Baseline answers are generated!")
 
     # Calculating answers after applying interventions
     evals = []
     for _, _, refusal_dir in tqdm(activation_scored):
-        hook_fn = functools.partial(
-            direction_ablation_hook, direction=norm(refusal_dir)
-        )
+        hook_fn = functools.partial(direction_ablation_hook, direction=norm(refusal_dir))
         fwd_hooks = [
             (utils.get_act_name(act_name, layer_num), hook_fn)
             for layer_num in list(range(n_layers))
             for act_name in activation_layers
         ]
-        evals.append(
-            get_generations(
-                model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=fwd_hooks
-            )
-        )
+        evals.append(get_generations(model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=fwd_hooks))
 
     # Selecting best intervention manually
     blacklist = [
@@ -321,17 +289,11 @@ def abliterate(
     model.W_E.data = get_orthogonalized_matrix(model.W_E, norm(refusal_dir))
 
     for block in tqdm(model.blocks):
-        block.attn.W_O.data = get_orthogonalized_matrix(
-            block.attn.W_O, norm(refusal_dir)
-        )
-        block.mlp.W_out.data = get_orthogonalized_matrix(
-            block.mlp.W_out, norm(refusal_dir)
-        )
+        block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, norm(refusal_dir))
+        block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, norm(refusal_dir))
 
     # Generating with new weights
-    orthogonalized_generations = get_generations(
-        model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=[]
-    )
+    orthogonalized_generations = get_generations(model, tokenizer, harmful_inst_test[:n_inst_test], fwd_hooks=[])
     for i in range(n_inst_test):
         if len(baseline_generations) > i:
             print(f"INSTRUCTION {i}: {harmful_inst_test[i]}")
@@ -340,9 +302,7 @@ def abliterate(
         print(f"ORTHOGONALIZED COMPLETION:\n{orthogonalized_generations[i]}\n")
 
     # Saving new weights
-    hf_model = AutoModelForCausalLM.from_pretrained(
-        model_path, torch_dtype=torch.bfloat16
-    )
+    hf_model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16)
     lm_model = hf_model.model
     state_dict = model.state_dict()
     embeds = state_dict["embed.W_E"].cpu()
@@ -362,9 +322,7 @@ def abliterate(
             .cpu()
         )
         lm_model.layers[layer_num].mlp.down_proj.weight = torch.nn.Parameter(
-            torch.transpose(state_dict[f"blocks.{layer_num}.mlp.W_out"], 0, 1)
-            .contiguous()
-            .cpu()
+            torch.transpose(state_dict[f"blocks.{layer_num}.mlp.W_out"], 0, 1).contiguous().cpu()
         )
 
     hf_model.save_pretrained(output_path)

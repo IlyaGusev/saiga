@@ -53,9 +53,7 @@ def anthropic_tokenize(text: str, api_key: Optional[str] = None):
 
 
 def anthropic_list_models():
-    models = (
-        inspect.signature(Anthropic().messages.create).parameters["model"].annotation
-    )
+    models = inspect.signature(Anthropic().messages.create).parameters["model"].annotation
     models = models[models.find("Literal") + len("Literal") : -1]
     models = models.replace("'", '"')
     models = json.loads(models)

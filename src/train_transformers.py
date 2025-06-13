@@ -46,9 +46,7 @@ def train(
 
     trainer_config = config.get("trainer")
     lora_config = config.get("lora")
-    training_args = TrainingArguments(
-        output_dir=output_dir, report_to=report_to, **trainer_config
-    )
+    training_args = TrainingArguments(output_dir=output_dir, report_to=report_to, **trainer_config)
 
     model_name = config["model_name"]
     tokenizer_name = config.get("tokenizer_name", model_name)

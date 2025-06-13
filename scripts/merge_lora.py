@@ -15,9 +15,7 @@ def merge_lora(model_name: str, output_path: str, device_map: str = "auto"):
         device_map=device_map,
     )
 
-    lora_model = PeftModel.from_pretrained(
-        base_model, model_name, torch_dtype=torch.bfloat16, device_map=device_map
-    )
+    lora_model = PeftModel.from_pretrained(base_model, model_name, torch_dtype=torch.bfloat16, device_map=device_map)
 
     lora_model = lora_model.merge_and_unload()
     lora_model.train(False)
