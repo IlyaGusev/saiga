@@ -23,7 +23,8 @@ dependencies = [
     "mypy>=1.15.0",
     "mmh3>=4.1.0",
     "unsloth@git+https://github.com/unslothai/unsloth@6c234d5",
-    "unsloth-zoo@git+https://github.com/IlyaGusev/unsloth-zoo@c3eae19"
+    "unsloth-zoo@git+https://github.com/IlyaGusev/unsloth-zoo@c3eae19",
+    "flash-attn==2.6.3",
 ]
 
 [tool.mypy]

@@ -1,0 +1,36 @@
+{
+    "trainer": {
+        "eval_strategy": "steps",
+        "per_device_train_batch_size": 1,
+        "per_device_eval_batch_size": 1,
+        "gradient_accumulation_steps": 128,
+        "eval_steps": 8,
+        "save_steps": 8,
+        "logging_steps": 1,
+        "learning_rate": 0.001,
+        "num_train_epochs": 3,
+        "lr_scheduler_type": "cosine",
+        "warmup_steps": 8,
+        "bf16": true,
+        "fp16": false,
+        "optim": "adamw_8bit",
+        "load_best_model_at_end": true,
+        "save_total_limit": 1,
+        "seed": 1337,
+        "max_grad_norm": 1.0,
+        "weight_decay": 0.001
+    },
+    "medusa": {
+        "medusa_num_heads": 2,
+        "medusa_num_layers": 1
+    },
+    "load_in_8bit": false,
+    "load_in_4bit": true,
+    "only_target_loss": true,
+    "model_name": "models/SAINEMO-reMIX",
+    "max_tokens_count": 6144,
+    "max_seq_length": 6144,
+    "bos_token": "<s>",
+    "eos_token": "</s>",
+    "pad_token": "<s>"
+}

@@ -93,7 +93,9 @@ def add_medusa_heads(
 
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs: bool = False):
+    def compute_loss(
+        self, model, inputs, return_outputs: bool = False, num_items_in_batch=None
+    ):
         logits = model(**inputs)
         labels = inputs["labels"]
         loss = 0
@@ -113,11 +115,10 @@ class CustomTrainer(Trainer):
             not_ignore = medusa_labels.ne(-100)
             medusa_labels = medusa_labels[not_ignore]
 
-            for k in range(1, 5):
-                _, topk = medusa_logits.topk(k, dim=-1)
-                topk = topk[not_ignore]
-                correct = topk.eq(medusa_labels.unsqueeze(-1)).any(-1)
-                log[f"medusa{i}_top{k}"] = correct.float().mean().item()
+            _, topk = medusa_logits.topk(1, dim=-1)
+            topk = topk[not_ignore]
+            correct = topk.eq(medusa_labels.unsqueeze(-1)).any(-1)
+            log[f"medusa{i}_top1"] = correct.float().mean().item()
             log[f"medusa{i}_loss"] = loss_i.item()
         if model.training:
             prefix = "train"
@@ -153,10 +154,14 @@ def train(
         load_in_4bit=config["load_in_4bit"],
         attn_implementation="flash_attention_2",
     )
+    for param in model.parameters():
+        param.requires_grad = False
     tokenizer.save_pretrained(output_dir)
 
     medusa_config = config["medusa"]
-    add_medusa_heads(model, medusa_config["medusa_num_heads"], medusa_config["medusa_num_layers"])
+    add_medusa_heads(
+        model, medusa_config["medusa_num_heads"], medusa_config["medusa_num_layers"]
+    )
 
     train_records = read_jsonl(train_path)
     val_records = read_jsonl(val_path)
@@ -175,7 +180,9 @@ def train(
             )
         )
     train_dataset, val_dataset = datasets
-    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer.tokenizer, pad_to_multiple_of=8)
+    data_collator = DataCollatorForTokenClassification(
+        tokenizer=tokenizer, pad_to_multiple_of=8
+    )
 
     trainer_config = config["trainer"]
     if trainer_config.get("report_to", "wandb") == "wandb":
