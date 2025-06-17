@@ -13,8 +13,8 @@ dependencies = [
     "peft==0.15.1",
     "accelerate==1.6.0",
     "bitsandbytes==0.45.3",
-    "xformers==0.0.29.post2",
-    "vllm==0.8.3",
+    "xformers==0.0.30",
+    "vllm==0.9.1",
     "trl==0.15.2",
     "wandb>=0.17.0",
     "fire>=0.6.0",
@@ -22,9 +22,9 @@ dependencies = [
     "black>=25.1.0",
     "mypy>=1.15.0",
     "mmh3>=4.1.0",
-    "unsloth@git+https://github.com/unslothai/unsloth@6c234d5",
-    "unsloth-zoo@git+https://github.com/IlyaGusev/unsloth-zoo@c3eae19",
-    "flash-attn==2.6.3",
+    "flash-attn==2.7.3",
+    "unsloth==2025.6.2",
+    "unsloth-zoo==2025.6.1",
 ]
 
 [tool.mypy]

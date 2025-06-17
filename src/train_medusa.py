@@ -21,9 +21,9 @@ torch._dynamo.config.cache_size_limit = 128
 
 
 class ResBlock(torch.nn.Module):
-    def __init__(self, hidden_size):
+    def __init__(self, hidden_size, dtype=torch.bfloat16):
         super().__init__()
-        self.linear = torch.nn.Linear(hidden_size, hidden_size)
+        self.linear = torch.nn.Linear(hidden_size, hidden_size, dtype=dtype)
         torch.nn.init.zeros_(self.linear.weight)
         self.act = torch.nn.SiLU()
 
@@ -35,6 +35,7 @@ def add_medusa_heads(
     model: FastLanguageModel,
     medusa_num_heads: int = 3,
     medusa_num_layers: int = 1,
+    dtype=torch.bfloat16,
 ):
     lm_head = model.lm_head
     hidden_size = lm_head.weight.shape[-1]
@@ -46,8 +47,8 @@ def add_medusa_heads(
     model.medusa_head = torch.nn.ModuleList(
         [
             torch.nn.Sequential(
-                *([ResBlock(hidden_size)] * medusa_num_layers),
-                torch.nn.Linear(hidden_size, vocab_size, bias=False),
+                *([ResBlock(hidden_size, dtype=dtype)] * medusa_num_layers),
+                torch.nn.Linear(hidden_size, vocab_size, bias=False, dtype=dtype),
             )
             for _ in range(medusa_num_heads)
         ]
@@ -55,6 +56,7 @@ def add_medusa_heads(
     model.medusa_head.to(model.dtype).to(model.device)
     for i in range(medusa_num_heads):
         model.medusa_head[i][-1].weight.data[:] = model.lm_head.weight.data[:]
+    model.medusa_head.to(model.dtype).to(model.device)
 
     model.old_forward = model.forward
 
@@ -120,10 +122,7 @@ class CustomTrainer(Trainer):
             correct = topk.eq(medusa_labels.unsqueeze(-1)).any(-1)
             log[f"medusa{i}_top1"] = correct.float().mean().item()
             log[f"medusa{i}_loss"] = loss_i.item()
-        if model.training:
-            prefix = "train"
-        else:
-            prefix = "eval"
+        prefix = "train" if model.training else "eval"
         log = {f"{prefix}/{k}": v for k, v in log.items()}
         wandb.log(
             {
