@@ -27,6 +27,7 @@ def infer_vllm(
     remove_bos_token: bool = False,
     quantization: Optional[str] = None,
     medusa_path: Optional[str] = None,
+    eagle_path: Optional[str] = None,
     max_messages_num: Optional[int] = None,
     max_char_num: Optional[int] = None,
     nrows: Optional[int] = None,
@@ -48,6 +49,15 @@ def infer_vllm(
             "num_speculative_tokens": num_speculative_tokens,
             "draft_tensor_parallel_size": 1,
         }
+    if eagle_path:
+        num_speculative_tokens = 3
+        speculative_config = {
+            "method": "eagle",
+            "model": eagle_path,
+            "num_speculative_tokens": num_speculative_tokens,
+            "draft_tensor_parallel_size": 1,
+        }
+        print(speculative_config)
 
     llm = LLM(
         model=model_name,

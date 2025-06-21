@@ -60,9 +60,6 @@ class ChatDataset(Dataset):
 
     def convert_record(self, record):
         messages = copy.deepcopy(record["messages"])
-        for m in messages:
-            m["content"] = [{"type": "text", "text": m["content"]}]
-
         input_ids, labels = [], []
         for message in messages:
             message_input_ids = self.get_tokens([message])

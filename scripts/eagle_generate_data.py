@@ -11,14 +11,20 @@ from src.util.io import read_jsonl
 
 
 def eagle_generate_data(
-    input_path: str, out_dir: str, model_name: str, max_tokens_count: int = 4096, sample_rate: float = 1.0
+    input_path: str,
+    out_dir: str,
+    model_name: str,
+    max_tokens_count: int = 4096,
+    sample_rate: float = 1.0,
+    group_size: int = 5000,
 ):
     records = read_jsonl(input_path)
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_name,
         max_seq_length=max_tokens_count,
         dtype=torch.bfloat16,
-        load_in_4bit=True,
+        load_in_4bit=False,
+        load_in_8bit=False,
         attn_implementation="flash_attention_2",
     )
     dataset = ChatDataset(
@@ -31,7 +37,7 @@ def eagle_generate_data(
         add_global_eos=True,
     )
     for idx, row in tqdm(enumerate(dataset), total=len(dataset)):
-        group_size = 5000
+        group_size = group_size
         start = (idx // group_size) * group_size
         end = start + group_size
         grouped_subdir = f"rows_{start}-{end}"
