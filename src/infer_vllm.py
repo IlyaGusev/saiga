@@ -57,7 +57,6 @@ def infer_vllm(
             "num_speculative_tokens": num_speculative_tokens,
             "draft_tensor_parallel_size": 1,
         }
-        print(speculative_config)
 
     llm = LLM(
         model=model_name,
@@ -94,7 +93,9 @@ def infer_vllm(
             messages = messages[:-1]
         r["messages"] = messages
 
-        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
         if remove_bos_token:
             prompt = prompt.replace(tokenizer.bos_token, "")
         if max_char_num is not None and len(prompt) >= max_char_num:
@@ -118,11 +119,11 @@ def infer_vllm(
             print(prompt_token_ids)
             print()
             print()
-            record["messages"].append({
-                "role": "assistant",
-                "content": generated_text
-            })
+            record["messages"].append({"role": "assistant", "content": generated_text})
             w.write(json.dumps(record, ensure_ascii=False).strip() + "\n")
+
+    if not eagle_path and not medusa_path:
+        return
 
     metrics = llm.get_metrics()
     num_drafts = num_accepted = 0
