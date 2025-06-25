@@ -3,8 +3,8 @@ import os
 from tqdm import tqdm
 import fire
 import torch
-from transformers import AutoTokenizer
 from unsloth import FastLanguageModel
+from transformers import AutoTokenizer
 
 from src.dataset import ChatDataset
 from src.util.io import read_jsonl
@@ -14,9 +14,9 @@ def eagle_generate_data(
     input_path: str,
     out_dir: str,
     model_name: str,
-    max_tokens_count: int = 4096,
+    max_tokens_count: int = 8192,
     sample_rate: float = 1.0,
-    group_size: int = 5000,
+    group_size: int = 1000,
 ):
     records = read_jsonl(input_path)
     model, tokenizer = FastLanguageModel.from_pretrained(
