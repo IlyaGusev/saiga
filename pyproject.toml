@@ -9,22 +9,21 @@ description = "Saiga training package"
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.3.0",
-    "transformers==4.51.3",
-    "peft==0.15.1",
-    "accelerate==1.6.0",
-    "bitsandbytes==0.45.3",
+    "transformers==4.57.3",
+    "peft==0.18.0",
+    "accelerate==1.12.0",
+    "bitsandbytes==0.49.0",
     "xformers==0.0.30",
     "vllm==0.9.1",
-    "trl==0.15.2",
+    "trl==0.24.0",
     "wandb>=0.17.0",
     "fire>=0.6.0",
     "flake8>=7.0.0",
     "black>=25.1.0",
     "mypy>=1.15.0",
     "mmh3>=4.1.0",
-    "flash-attn==2.7.3",
-    "unsloth==2025.6.2",
-    "unsloth-zoo==2025.6.1",
+    "unsloth==2025.12.5",
+    "unsloth-zoo==2025.12.4",
 ]
 
 [tool.mypy]

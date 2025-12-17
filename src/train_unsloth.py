@@ -151,7 +151,7 @@ def train(
             )
         )
     train_dataset, val_dataset = datasets
-    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer.tokenizer, pad_to_multiple_of=8)
+    data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer, pad_to_multiple_of=8)
 
     trainer_config = config["trainer"]
     if trainer_config.get("report_to", "wandb") == "wandb":
