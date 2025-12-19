@@ -4,9 +4,9 @@
         "per_device_train_batch_size": 16,
         "per_device_eval_batch_size": 16,
         "eval_accumulation_steps": 4,
-        "gradient_accumulation_steps": 8,
-        "eval_steps": 512,
-        "save_steps": 512,
+        "gradient_accumulation_steps": 4,
+        "eval_steps": 1024,
+        "save_steps": 1024,
         "logging_steps": 1,
         "learning_rate": 0.0003,
         "embedding_learning_rate": 0.00002,
@@ -40,5 +40,6 @@
     "bos_token": "<|im_end|>",
     "eos_token": "<|im_end|>",
     "pad_token": "<|endoftext|>",
-    "fix_untrained_tokens": true
+    "fix_untrained_tokens": true,
+    "add_global_bos": false
 }
