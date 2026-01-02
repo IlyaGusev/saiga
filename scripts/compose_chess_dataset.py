@@ -9,7 +9,7 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 
-def compose_chess_dataset(train_path: str, val_path: str, train_part: int = 98):
+def compose_chess_dataset(train_path: str, val_path: str, train_part: int = 99):
     records = []
     dataset_name = "IlyaGusev/lichess_evals_formatted"
     dataset = load_dataset(dataset_name, split="sft")
@@ -47,7 +47,7 @@ def compose_chess_dataset(train_path: str, val_path: str, train_part: int = 98):
     train_records = []
     val_records = []
     for r in records:
-        s = str(r["messages"])
+        s = str(r["fen"])
         h = mmh3.hash(s, signed=False)
         if h % 100 < train_part:
             train_records.append(r)

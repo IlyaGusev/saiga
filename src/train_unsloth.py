@@ -102,7 +102,7 @@ def train(
         dtype=torch.bfloat16,
         load_in_8bit=config["load_in_8bit"],
         load_in_4bit=config["load_in_4bit"],
-        attn_implementation="flash_attention_2",
+        full_finetuning=(config.get("lora") is None),
     )
     tie_word_embeddings = model.config.tie_word_embeddings
     tokenizer.bos_token = config["bos_token"]
